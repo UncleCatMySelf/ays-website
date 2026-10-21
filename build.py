@@ -251,7 +251,6 @@ def share_section(p):
 def follow_section():
     return """    <section class="section wrap" style="text-align:center;">
       <h2 class="section__title">关注 Du株 · 全平台</h2>
-      <p class="section__lead">视频在 B站 / YouTube / 喜马拉雅；深度内容在公众号 / 小红书 / 抖音。把鼠标移到图标上，二维码即刻出现（手机点一下）。</p>
 """ + channels_html() + """
     </section>"""
 

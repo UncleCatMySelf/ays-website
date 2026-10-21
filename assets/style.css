@@ -235,12 +235,41 @@ img { max-width: 100%; height: auto; }
 .footer a { color: var(--text-muted); }
 .footer__copy { text-align: center; font-size: 13px; margin-top: 18px; }
 
-/* ---------- 响应式 ---------- */
+/* ---------- 响应式（电脑 / 平板 / 手机自适应） ---------- */
+/* 桌面大屏（>1024px）：维持默认容器与留白 */
+@media (max-width: 1024px) {
+  .wrap { padding: 0 18px; }
+  .section { padding: 56px 0; }
+  .hero { padding: 76px 0 60px; }
+}
+/* 平板（≤768px）：导航收紧、渠道徽标与弹卡略缩、网格间隙收窄 */
+@media (max-width: 768px) {
+  .nav { gap: 8px; padding: 12px 16px; flex-wrap: wrap; }
+  .nav__brand { font-size: 16px; }
+  .nav__link { font-size: 14px; }
+  .channel__badge { width: 58px; height: 58px; border-radius: 16px; }
+  .channel__badge svg { width: 58px; height: 58px; }
+  .channel__card { width: 172px; padding: 12px; }
+  .channel__qr { width: 130px; height: 130px; }
+  .channel__avatar { width: 82px; height: 82px; }
+  .grid { gap: 16px; }
+}
+/* 手机（≤640px）：区块间距、Hero、导航换行、渠道排布 */
 @media (max-width: 640px) {
   .section { padding: 44px 0; }
   .hero { padding: 60px 0 48px; }
   .nav { gap: 10px; padding: 12px 14px; flex-wrap: wrap; }
   .nav__link { font-size: 14px; }
+  .channels { gap: 22px; }
+  .channel__name { font-size: 13px; }
+}
+/* 超小屏（≤380px）：进一步收敛弹卡与徽标，避免溢出 */
+@media (max-width: 380px) {
+  .channel__badge { width: 52px; height: 52px; }
+  .channel__badge svg { width: 52px; height: 52px; }
+  .channel__card { width: 156px; padding: 10px; }
+  .channel__qr { width: 116px; height: 116px; }
+  .channel__avatar { width: 72px; height: 72px; }
 }
 
 /* ---------- 打印 ---------- */
