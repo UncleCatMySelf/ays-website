@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://unclecatmyself.github.io/ays-website/sitemap.xml
