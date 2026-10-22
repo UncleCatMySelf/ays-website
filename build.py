@@ -78,9 +78,10 @@ def channels_html(mini=False):
     return '    <div class="' + cls + '">\n' + "\n".join(out) + "\n    </div>"
 
 
-def footer():
+def footer(show_channels=True):
+    ch = channels_html(mini=True) if show_channels else ""
     return f'''  <footer class="footer">
-{channels_html(mini=True)}
+{ch}
     <div class="footer__copy">© <span data-year>2026</span> AYS · Du株 · 好好吃饭 · 内容仅供参考，不替代医疗诊断</div>
   </footer>
   <script src="assets/script.js"></script>'''
@@ -91,7 +92,7 @@ FAVICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox
            "%3Ctext x='16' y='22' font-size='16' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E")
 
 
-def page(title, desc, inner, url, ogimg="", extra_head=""):
+def page(title, desc, inner, url, ogimg="", extra_head="", show_channels=True):
     return f"""<!DOCTYPE html>
 <html lang="zh-CN" data-theme="light">
 <head>
@@ -113,7 +114,7 @@ def page(title, desc, inner, url, ogimg="", extra_head=""):
 <body>
 {NAV}
 {inner}
-{footer()}
+{footer(show_channels)}
 </body>
 </html>"""
 
@@ -312,7 +313,7 @@ def home(latest):
 {follow_section()}"""
     return page("AYS · Du株 · 好好吃饭｜循证营养科普",
                 "Du株的循证营养科普官网：怎么吃对、怎么瘦得稳、慢病饮食。配套 YouTube @DuZhu-AYS 视频。",
-                inner, SITE + "/index.html")
+                inner, SITE + "/index.html", show_channels=False)
 
 
 def list_page(posts):
