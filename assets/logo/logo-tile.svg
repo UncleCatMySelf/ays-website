@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="好好吃饭 渐变圆角方牌图标">
+  <defs>
+    <linearGradient id="mintGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#38d394"/>
+      <stop offset="1" stop-color="#1faf77"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#mintGrad)"/>
+  <!-- 碗身 -->
+  <path d="M106,300 C106,402 176,448 256,448 C336,448 406,402 406,300 Z" fill="#ffffff"/>
+  <!-- 碗口 -->
+  <ellipse cx="256" cy="300" rx="150" ry="40" fill="#ffffff"/>
+  <!-- 米饭（浅薄荷） -->
+  <ellipse cx="256" cy="292" rx="120" ry="29" fill="#d4f0e2"/>
+  <path d="M170,286 Q256,246 342,286 Z" fill="#d4f0e2"/>
+  <!-- 筷子：白色，斜靠 -->
+  <g stroke="#ffffff" stroke-width="20" stroke-linecap="round">
+    <line x1="150" y1="292" x2="362" y2="150"/>
+    <line x1="170" y1="302" x2="382" y2="160"/>
+  </g>
+</svg>

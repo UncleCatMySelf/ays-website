@@ -31,9 +31,7 @@ LOGOS = {
     "douyin": '<svg viewBox="0 0 64 64" width="64" height="64"><rect x="6" y="14" width="52" height="36" rx="12" fill="#161823"/><path d="M38 22v18a7 7 0 11-5-6.6" stroke="#25f4ee" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M38 22a7 7 0 005 6.6" stroke="#fe2c55" stroke-width="4" fill="none" stroke-linecap="round"/></svg>',
 }
 
-FAVICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E"
-           "%3Crect width='32' height='32' rx='8' fill='%231faf77'/%3E"
-           "%3Ctext x='16' y='22' font-size='16' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E")
+FAVICON = "assets/logo/logo-tile.svg"
 
 
 # ---------------- 读取与解析 ----------------
@@ -346,7 +344,10 @@ def page(site, title, desc, inner, url, ogimg="", extra_head="", show_channels=T
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title}</title>
   <meta name="description" content="{desc}" />
-  <link rel="icon" href="{FAVICON}" />
+  <link rel="icon" href="{FAVICON}" type="image/svg+xml" />
+  <link rel="icon" href="assets/logo/favicon.ico" sizes="48x48" />
+  <link rel="apple-touch-icon" href="assets/logo/apple-touch-icon.png" />
+  <meta name="theme-color" content="#1faf77" />
   <link rel="canonical" href="{url}" />
   <meta property="og:title" content="{title}" />
   <meta property="og:description" content="{desc}" />
