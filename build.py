@@ -44,6 +44,7 @@ NAV = """
     <a class="nav__link" href="index.html">首页</a>
     <a class="nav__link" href="articles.html">文章</a>
     <a class="nav__link" href="about.html">关于</a>
+    <a class="nav__link" href="roadmap.html">规划</a>
     <a class="nav__link nav__yt" href="https://www.youtube.com/@DuZhu-AYS" target="_blank" rel="noopener">YouTube</a>
     <button class="theme-toggle" aria-label="切换深色模式">🌙</button>
   </nav>"""
@@ -345,6 +346,67 @@ def article_page(p):
                 inner, SITE + "/" + p["slug"] + ".html", ogimg)
 
 
+def roadmap():
+    inner = """
+    <header class="hero">
+      <span class="hero__kicker">项目进展 · AYS</span>
+      <h1 class="hero__title">里程碑 &amp; <em>项目规划</em></h1>
+      <p class="hero__sub">用循证营养，陪你把饭吃对、把健康吃回来——我们走到哪、要去哪，都记在这里。</p>
+    </header>
+
+    <section class="section--soft">
+      <div class="wrap">
+        <h2 class="section__title">🌱 项目方向</h2>
+        <p class="section__lead">不急着摊开所有计划，只说清楚两件大事。</p>
+        <div class="dir-grid">
+          <div class="dir">
+            <div class="dir__icon">🥗</div>
+            <div class="dir__name">做成值得托付的循证营养品牌</div>
+            <div class="dir__desc">不追热点、不制造焦虑，用有依据的饮食建议，陪一代人把饭吃对、把健康一口口吃回来。</div>
+            <span class="dir__tag">长期目标</span>
+          </div>
+          <div class="dir">
+            <div class="dir__icon">📚</div>
+            <div class="dir__name">把知识沉淀成可传承的系统</div>
+            <div class="dir__desc">从一份份资料，到一个五维知识库，再到课程与手册，让经验能复用、能交给时间。</div>
+            <span class="dir__tag">长期目标</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2 class="section__title">🏁 里程碑</h2>
+        <p class="section__lead">几个值得记住的节点。</p>
+        <div class="timeline">
+          <div class="ms"><div class="ms__date">2026-10-21</div><div class="ms__title">官网正式上线</div><div class="ms__desc">对外窗口落成，六大平台渠道打通，第一次被人完整看见。</div></div>
+          <div class="ms"><div class="ms__date">2026-10-20</div><div class="ms__title">知识库奠基</div><div class="ms__desc">五维知识模型建成，沉淀逾 2000 份资料，长期主义的底盘。</div></div>
+          <div class="ms"><div class="ms__date">2026-10-16</div><div class="ms__title">项目正式启动</div><div class="ms__desc">品牌三层定位与全平台账号体系定稿——一切的起点。</div></div>
+        </div>
+      </div>
+    </section>"""
+    extra = """<style>
+.dir-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px}
+.dir{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:26px}
+.dir__icon{font-size:26px}
+.dir__name{font-size:19px;font-weight:800;margin:8px 0 8px}
+.dir__desc{color:var(--text-muted);font-size:15px}
+.dir__tag{display:inline-block;margin-top:14px;font-size:12px;font-weight:800;color:var(--primary-strong);background:var(--primary-soft);padding:4px 12px;border-radius:999px}
+.timeline{position:relative;margin:8px 0 0 8px;padding-left:30px}
+.timeline::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:var(--border)}
+.ms{position:relative;margin-bottom:26px}
+.ms::before{content:"";position:absolute;left:-30px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--primary);border:3px solid var(--bg);box-shadow:0 0 0 2px var(--primary-soft)}
+.ms__date{font-size:13px;font-weight:800;color:var(--primary-strong);letter-spacing:.5px}
+.ms__title{font-size:17px;font-weight:700;margin:2px 0 3px}
+.ms__desc{color:var(--text-muted);font-size:14px}
+@media (max-width:640px){.dir-grid{grid-template-columns:1fr}.dir{padding:20px}}
+</style>"""
+    return page("里程碑 & 项目规划 · AYS · Du株",
+                "AYS·Du株的项目里程碑与长期方向：循证营养科普品牌的成长节点与规划。",
+                inner, SITE + "/roadmap.html", extra_head=extra)
+
+
 # ---------------- 入口 ----------------
 def main():
     os.makedirs(POSTS_DIR, exist_ok=True)
@@ -359,8 +421,11 @@ def main():
         with open(os.path.join(ROOT, p["slug"] + ".html"), "w", encoding="utf-8") as f:
             f.write(article_page(p))
 
+    with open(os.path.join(ROOT, "roadmap.html"), "w", encoding="utf-8") as f:
+        f.write(roadmap())
+
     # sitemap
-    urls = [SITE + "/index.html", SITE + "/about.html", SITE + "/articles.html"]
+    urls = [SITE + "/index.html", SITE + "/about.html", SITE + "/articles.html", SITE + "/roadmap.html"]
     urls += [SITE + "/" + p["slug"] + ".html" for p in posts]
     sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     for u in urls:
@@ -371,7 +436,7 @@ def main():
     with open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8") as f:
         f.write("User-agent: *\nAllow: /\nSitemap: " + SITE + "/sitemap.xml\n")
 
-    print(f"构建完成：{len(posts)} 篇文章，生成 index/articles + {len(posts)} 篇详情 + sitemap/robots")
+    print(f"构建完成：{len(posts)} 篇文章，生成 index/articles/roadmap + {len(posts)} 篇详情 + sitemap/robots")
 
 
 if __name__ == "__main__":
