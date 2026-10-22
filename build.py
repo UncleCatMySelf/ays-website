@@ -1,33 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-AYS 官网 · 博客发布引擎
+AYS 官网 · 内容驱动构建引擎
 用法：python build.py
-- 读取 posts/*.md（含 frontmatter）渲染为 <slug>.html
-- 自动重建首页 index.html（含最新 3 篇）与文章列表 articles.html
-- 生成 sitemap.xml / robots.txt
-- 复制 assets 由仓库本身承载，无需额外步骤
-用户只需写 markdown，跑本脚本 + sync 即上线。
+设计原则：内容（文案）与代码/样式彻底分离
+- content/site.md   全站设置：品牌、导航、各平台关注渠道（链接/二维码）
+- content/home.md   首页文案（hero + 各栏目卡片）
+- content/about.md  关于页文案
+- content/roadmap.md 规划页：方向 + 里程碑（自动按日期倒序）
+- posts/*.md        博客文章（含 frontmatter）
+生成：index/about/roadmap/articles + 文章详情 + sitemap/robots
+用户只需改 content/*.md，跑本脚本 + sync 即上线。
+样式/布局/功能（导航、页脚、深色模式、响应式、动态文章列表、YouTube 嵌入）由本引擎负责。
 """
 import os, re, glob, html, datetime
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 POSTS_DIR = os.path.join(ROOT, "posts")
+CONTENT_DIR = os.path.join(ROOT, "content")
 SITE = "https://unclecatmyself.github.io/ays-website"
 REPO = "UncleCatMySelf/ays-website"
 
-# ---------------- 全平台渠道（关注 Du株） ----------------
-# (key, 名称, 跳转链接或None, logo键, 二维码图或None)
-CHANNELS = [
-    ("bilibili", "B站", "https://space.bilibili.com/3546711997811319", "bilibili", None),
-    ("youtube", "YouTube", "https://www.youtube.com/@DuZhu-AYS", "youtube", None),
-    ("ximalaya", "喜马拉雅", "https://www.ximalaya.com/zhubo/57318376", "ximalaya", None),
-    ("wechat", "公众号", None, "wechat", "assets/qr/qr-wechat.png"),
-    ("xhs", "小红书", None, "xhs", "assets/qr/qr-xhs.png"),
-    ("douyin", "抖音", None, "douyin", "assets/qr/qr-douyin.png"),
-]
-
-# 手绘渠道 logo（内联 SVG，品牌色）
+# ---------------- 手绘渠道 logo（内联 SVG，品牌色） ----------------
 LOGOS = {
     "bilibili": '<svg viewBox="0 0 64 64" width="64" height="64"><rect x="6" y="20" width="52" height="36" rx="12" fill="#00a1d6"/><path d="M16 8l10 12M48 8l-10 12" stroke="#00a1d6" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M22 30h20M22 38h20" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg>',
     "youtube": '<svg viewBox="0 0 64 64" width="64" height="64"><rect x="6" y="16" width="52" height="32" rx="10" fill="#ff0033"/><path d="M28 26l14 6-14 6z" fill="#fff"/></svg>',
@@ -37,87 +31,112 @@ LOGOS = {
     "douyin": '<svg viewBox="0 0 64 64" width="64" height="64"><rect x="6" y="14" width="52" height="36" rx="12" fill="#161823"/><path d="M38 22v18a7 7 0 11-5-6.6" stroke="#25f4ee" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M38 22a7 7 0 005 6.6" stroke="#fe2c55" stroke-width="4" fill="none" stroke-linecap="round"/></svg>',
 }
 
-NAV = """
-  <nav class="nav">
-    <div class="nav__brand">AYS · <span>Du株</span></div>
-    <div class="nav__spacer"></div>
-    <a class="nav__link" href="index.html">首页</a>
-    <a class="nav__link" href="articles.html">文章</a>
-    <a class="nav__link" href="about.html">关于</a>
-    <a class="nav__link" href="roadmap.html">规划</a>
-    <a class="nav__link nav__yt" href="https://www.youtube.com/@DuZhu-AYS" target="_blank" rel="noopener">YouTube</a>
-    <button class="theme-toggle" aria-label="切换深色模式">🌙</button>
-  </nav>"""
-
-
-def channels_html(mini=False):
-    out = []
-    for key, name, url, logo, qr in CHANNELS:
-        badge = LOGOS[logo]
-        if qr:
-            out.append(
-                f'''      <span class="channel channel--qr" tabindex="0" data-name="{name}" role="button" aria-label="{name} 扫码关注">
-        <span class="channel__badge">{badge}</span>
-        <span class="channel__name">{name}</span>
-        <span class="channel__card channel__card--qr">
-          <img class="channel__qr" src="{qr}" alt="{name}二维码" loading="lazy" />
-          <span class="channel__card-text">{name} · 扫码关注</span>
-        </span>
-      </span>''')
-        else:
-            out.append(
-                f'''      <a class="channel" href="{url}" target="_blank" rel="noopener" data-name="{name}" aria-label="{name} 频道">
-        <span class="channel__badge">{badge}</span>
-        <span class="channel__name">{name}</span>
-        <span class="channel__card">
-          <img class="channel__avatar" src="assets/avatar.jpg" alt="{name}" loading="lazy" />
-          <span class="channel__card-title">{name}</span>
-          <span class="channel__card-text">前往 {name}频道 →</span>
-        </span>
-      </a>''')
-    cls = "channels" + (" channels--mini" if mini else "")
-    return '    <div class="' + cls + '">\n' + "\n".join(out) + "\n    </div>"
-
-
-def footer(show_channels=True):
-    ch = channels_html(mini=True) if show_channels else ""
-    return f'''  <footer class="footer">
-{ch}
-    <div class="footer__copy">© <span data-year>2026</span> AYS · Du株 · 好好吃饭 · 内容仅供参考，不替代医疗诊断</div>
-  </footer>
-  <script src="assets/script.js"></script>'''
-
-
 FAVICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E"
            "%3Crect width='32' height='32' rx='8' fill='%231faf77'/%3E"
            "%3Ctext x='16' y='22' font-size='16' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E")
 
 
-def page(title, desc, inner, url, ogimg="", extra_head="", show_channels=True):
-    return f"""<!DOCTYPE html>
-<html lang="zh-CN" data-theme="light">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{title}</title>
-  <meta name="description" content="{desc}" />
-  <link rel="icon" href="{FAVICON}" />
-  <link rel="canonical" href="{url}" />
-  <meta property="og:title" content="{title}" />
-  <meta property="og:description" content="{desc}" />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="{url}" />
-  {"<meta property='og:image' content='" + ogimg + "' />" if ogimg else ""}
-  <meta name="twitter:card" content="summary_large_image" />
-  <link rel="stylesheet" href="assets/style.css" />
-  {extra_head}
-</head>
-<body>
-{NAV}
-{inner}
-{footer(show_channels)}
-</body>
-</html>"""
+# ---------------- 读取与解析 ----------------
+def read_md(path):
+    with open(path, encoding="utf-8") as f:
+        return f.read()
+
+
+def parse_frontmatter(raw):
+    fm, body = {}, raw
+    m = re.match(r"^---\s*\n(.*?)\n---\s*\n(.*)$", raw, re.S)
+    if m:
+        for line in m.group(1).split("\n"):
+            if ":" in line:
+                k, v = line.split(":", 1)
+                fm[k.strip()] = v.strip()
+        body = m.group(2)
+    return fm, body
+
+
+def load_site():
+    """读取 content/site.md：品牌、导航、关注渠道。"""
+    fm, body = parse_frontmatter(read_md(os.path.join(CONTENT_DIR, "site.md")))
+    nav, channels = [], []
+    section = None
+    for line in body.split("\n"):
+        s = line.strip()
+        if s.startswith("## "):
+            section = s[3:].strip()
+            continue
+        if not s or section is None:
+            continue
+        if section == "导航":
+            parts = [p.strip() for p in s.split("|")]
+            if len(parts) >= 2:
+                label, href = parts[0], parts[1]
+                external = len(parts) >= 3 and parts[2] == "external"
+                nav.append((label, href, external))
+        elif section == "渠道":
+            parts = [p.strip() for p in s.split("|")]
+            if len(parts) >= 4:
+                name, typ, value, logo = parts[0], parts[1], parts[2], parts[3]
+                if typ == "link":
+                    channels.append((logo, name, value, logo, None))
+                else:  # qr
+                    channels.append((logo, name, None, logo, value))
+    return {
+        "brand": fm.get("brand", "AYS · Du株"),
+        "kicker": fm.get("kicker", fm.get("brand", "AYS · Du株")),
+        "footer": fm.get("footer", "© 2026 AYS · Du株 · 好好吃饭 · 内容仅供参考，不替代医疗诊断"),
+        "youtube_embed": fm.get("youtube_embed", "https://www.youtube.com/embed?listType=search&list=DuZhu-AYS%20AYS%20营养"),
+        "nav": nav,
+        "channels": channels,
+    }
+
+
+def parse_blocks(raw):
+    """首页/规划页：抽取 hero + 各 ## 栏目（引导句 + 卡片项）。"""
+    fm, body = parse_frontmatter(raw)
+    hero_title, hero_sub = "", ""
+    sections, cur = [], None
+    for line in body.split("\n"):
+        s = line.strip()
+        if s.startswith("# "):
+            hero_title = s[2:].strip()
+        elif s.startswith("> "):
+            if cur is None:
+                hero_sub = s[2:].strip()
+            else:
+                cur["lead"] = s[2:].strip()
+        elif s.startswith("## "):
+            cur = {"title": s[3:].strip(), "lead": None, "items": []}
+            sections.append(cur)
+        elif re.match(r"^[-*] ", s) and cur is not None:
+            cur["items"].append(s[2:].strip())
+    return fm, hero_title, hero_sub, sections
+
+
+def parse_about_blocks(body):
+    """关于页：# 标题 + > 引导 + 每个 ## 变一张卡片。"""
+    h1 = lead = None
+    blocks, cur, buf = [], None, []
+    for line in body.split("\n"):
+        s = line.strip()
+        if s.startswith("# "):
+            h1 = s[2:].strip()
+        elif s.startswith("> "):
+            if cur is None:
+                lead = s[2:].strip()
+            else:
+                buf.append(line)
+        elif s.startswith("## "):
+            if cur:
+                cur["content"] = "\n".join(buf).strip()
+                blocks.append(cur)
+            cur, buf = {"title": s[3:].strip(), "content": ""}, []
+        else:
+            if cur is not None:
+                buf.append(line)
+    if cur:
+        cur["content"] = "\n".join(buf).strip()
+        blocks.append(cur)
+    return h1, lead, blocks
 
 
 # ---------------- Markdown 轻量解析 ----------------
@@ -194,32 +213,40 @@ def md_to_html(md):
     return "\n".join(out)
 
 
-def parse_post(path):
-    raw = open(path, encoding="utf-8").read()
-    fm, body = {}, raw
-    m = re.match(r"^---\s*\n(.*?)\n---\s*\n(.*)$", raw, re.S)
-    if m:
-        for line in m.group(1).split("\n"):
-            if ":" in line:
-                k, v = line.split(":", 1)
-                fm[k.strip()] = v.strip()
-    slug = os.path.splitext(os.path.basename(path))[0]
-    return dict(
-        slug=slug,
-        title=fm.get("title", slug),
-        date=fm.get("date", ""),
-        summary=fm.get("summary", ""),
-        tags=[t.strip() for t in fm.get("tags", "").split(",") if t.strip()],
-        cover=fm.get("cover", ""),
-        html=md_to_html(body),
-    )
+# ---------------- 卡片 / 项解析 ----------------
+def split_card_item(text):
+    m = re.split(r"[:：]", text, maxsplit=1)
+    if len(m) == 2:
+        return m[0].strip(), m[1].strip()
+    return text.strip(), ""
 
 
-def pdate(p):
-    try:
-        return datetime.datetime.strptime(p["date"], "%Y-%m-%d")
-    except Exception:
-        return datetime.datetime(1970, 1, 1)
+def split_icon(title):
+    m = re.match(r"^(\S)\s+(.+)$", title)
+    if m and not re.match(r"[\w一-鿿]", m.group(1)):
+        return m.group(1), m.group(2)
+    return "", title
+
+
+def split_icon_title(text):
+    title, desc = split_card_item(text)
+    icon, name = split_icon(title)
+    return icon, name, desc
+
+
+def card_html(icon, title, desc):
+    ic = f'<div class="card__icon">{icon}</div>' if icon else ""
+    return f'''      <div class="card">{ic}<div class="card__title">{title}</div><p class="card__text">{desc}</p></div>'''
+
+
+def dir_html(icon, title, desc):
+    ic = f'<div class="dir__icon">{icon}</div>' if icon else ""
+    return f'''          <div class="dir">
+            {ic}
+            <div class="dir__name">{title}</div>
+            <div class="dir__desc">{desc}</div>
+            <span class="dir__tag">长期目标</span>
+          </div>'''
 
 
 # ---------------- 片段 ----------------
@@ -250,71 +277,139 @@ def share_section(p):
     </div>"""
 
 
-def follow_section():
+def channels_html(channels, mini=False):
+    out = []
+    for key, name, url, logo, qr in channels:
+        badge = LOGOS.get(logo, "")
+        if qr:
+            out.append(
+                f'''      <span class="channel channel--qr" tabindex="0" data-name="{name}" role="button" aria-label="{name} 扫码关注">
+        <span class="channel__badge">{badge}</span>
+        <span class="channel__name">{name}</span>
+        <span class="channel__card channel__card--qr">
+          <img class="channel__qr" src="{qr}" alt="{name}二维码" loading="lazy" />
+          <span class="channel__card-text">{name} · 扫码关注</span>
+        </span>
+      </span>''')
+        else:
+            out.append(
+                f'''      <a class="channel" href="{url}" target="_blank" rel="noopener" data-name="{name}" aria-label="{name} 频道">
+        <span class="channel__badge">{badge}</span>
+        <span class="channel__name">{name}</span>
+        <span class="channel__card">
+          <img class="channel__avatar" src="assets/avatar.jpg" alt="{name}" loading="lazy" />
+          <span class="channel__card-title">{name}</span>
+          <span class="channel__card-text">前往 {name}频道 →</span>
+        </span>
+      </a>''')
+    cls = "channels" + (" channels--mini" if mini else "")
+    return '    <div class="' + cls + '">\n' + "\n".join(out) + "\n    </div>"
+
+
+def follow_section(channels):
     return """    <section class="section wrap" style="text-align:center;">
       <h2 class="section__title">关注 Du株 · 全平台</h2>
-""" + channels_html() + """
+""" + channels_html(channels) + """
     </section>"""
 
 
+def nav_html(site):
+    links = []
+    for label, href, external in site["nav"]:
+        cls = "nav__link"
+        if "youtube.com" in href:
+            cls += " nav__yt"
+        tgt = ' target="_blank" rel="noopener"' if external else ""
+        links.append(f'    <a class="{cls}" href="{href}"{tgt}>{label}</a>')
+    return f'''  <nav class="nav">
+    <div class="nav__brand">{html.escape(site["brand"])}</div>
+    <div class="nav__spacer"></div>
+{chr(10).join(links)}
+    <button class="theme-toggle" aria-label="切换深色模式">🌙</button>
+  </nav>'''
+
+
+def footer(site, show_channels=True):
+    ch = channels_html(site["channels"], mini=True) if show_channels else ""
+    return f'''  <footer class="footer">
+{ch}
+    <div class="footer__copy">{site["footer"]}</div>
+  </footer>
+  <script src="assets/script.js"></script>'''
+
+
+def page(site, title, desc, inner, url, ogimg="", extra_head="", show_channels=True):
+    return f"""<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content="{desc}" />
+  <link rel="icon" href="{FAVICON}" />
+  <link rel="canonical" href="{url}" />
+  <meta property="og:title" content="{title}" />
+  <meta property="og:description" content="{desc}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="{url}" />
+  {"<meta property='og:image' content='" + ogimg + "' />" if ogimg else ""}
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="stylesheet" href="assets/style.css" />
+  {extra_head}
+</head>
+<body>
+{nav_html(site)}
+{inner}
+{footer(site, show_channels)}
+</body>
+</html>"""
+
+
 # ---------------- 页面模板 ----------------
-def home(latest):
-    cards = "\n".join(post_card(p) for p in latest) or '      <p>文章即将上线，先去 <a href="https://www.youtube.com/@DuZhu-AYS" target="_blank" rel="noopener">YouTube @DuZhu-AYS</a> 看视频吧。</p>'
+def home(site, content, latest):
+    fm, hero_title, hero_sub, sections = parse_blocks(content)
+    sec_html = []
+    for sec in sections:
+        cards = "".join(card_html(*split_icon_title(it)) for it in sec["items"])
+        sec_html.append(f'''    <section class="section wrap">
+      <h2 class="section__title">{sec["title"]}</h2>
+      <p class="section__lead">{sec["lead"] or ""}</p>
+      <div class="grid">
+{cards}
+      </div>
+    </section>''')
+    cards_latest = "\n".join(post_card(p) for p in latest) or '      <p>文章即将上线，先去 <a href="https://www.youtube.com/@DuZhu-AYS" target="_blank" rel="noopener">YouTube @DuZhu-AYS</a> 看视频吧。</p>'
     inner = f"""
     <section class="hero">
-      <span class="hero__kicker">AYS · 唤醒真我</span>
-      <h1 class="hero__title">好好<em>吃饭</em>，<br/>把健康一口口吃回来</h1>
-      <p class="hero__sub">Du株 · 持证营养师 + 互联网医疗从业者，用循证营养，陪你吃对每一天。</p>
+      <span class="hero__kicker">{html.escape(site["kicker"])}</span>
+      <h1 class="hero__title">{hero_title}</h1>
+      <p class="hero__sub">{hero_sub}</p>
       <div class="btn-row">
         <a class="btn btn--primary" href="articles.html">读最新文章</a>
         <a class="btn btn--ghost" href="https://www.youtube.com/@DuZhu-AYS" target="_blank" rel="noopener">▷ 看 YouTube 频道</a>
       </div>
     </section>
-
-    <section class="section wrap">
-      <h2 class="section__title">为什么是「好好吃饭」</h2>
-      <p class="section__lead">不节食、不焦虑，只把身体真正需要的营养，重新端上餐桌。</p>
-      <div class="grid">
-        <div class="card"><div class="card__icon">🥗</div><div class="card__title">循证优先</div><p class="card__text">每条建议尽量有依据，拒绝制造焦虑的伪科普。</p></div>
-        <div class="card"><div class="card__icon">🎯</div><div class="card__title">可立即执行</div><p class="card__text">不教你玄学，只给今天就能用上的具体做法。</p></div>
-        <div class="card"><div class="card__icon">📺</div><div class="card__title">视频 + 图文</div><p class="card__text">小中视频发四端，配套图文沉淀在这里。</p></div>
-      </div>
-    </section>
-
-    <section class="section section--soft">
-      <div class="wrap">
-        <h2 class="section__title">内容系列</h2>
-        <p class="section__lead">从「怎么吃对」起步，逐步覆盖体重管理、慢病饮食。</p>
-        <div class="grid">
-          <div class="card"><div class="card__title">① 怎么吃对</div><p class="card__text">24 种常见食材的吃法、搭配与坑。</p><a class="card__link" href="articles.html">查看系列 →</a></div>
-          <div class="card"><div class="card__title">② 怎么瘦得稳</div><p class="card__text">不饿肚子的体重管理思路。</p><a class="card__link" href="articles.html">查看系列 →</a></div>
-          <div class="card"><div class="card__title">③ 慢病饮食</div><p class="card__text">三高、肾健康等的日常饮食框架。</p><a class="card__link" href="articles.html">查看系列 →</a></div>
-        </div>
-      </div>
-    </section>
-
+{''.join(sec_html)}
     <section class="section wrap">
       <h2 class="section__title">最新文章</h2>
       <p class="section__lead">图文沉淀，配套视频在 YouTube @DuZhu-AYS。</p>
       <div class="grid">
-{cards}
+{cards_latest}
       </div>
       <div style="text-align:center;margin-top:30px;"><a class="btn btn--ghost" href="articles.html">查看全部文章 →</a></div>
     </section>
 
     <section class="section section--soft">
-      <div class="wrap" style="text-align:center;">
+      <div class="wrap">
         <h2 class="section__title">在 YouTube 看视频</h2>
         <div class="yt" style="max-width:820px;margin:0 auto;">
-          <iframe src="https://www.youtube.com/embed?listType=search&list=DuZhu-AYS%20AYS%20营养" title="Du株 YouTube" allowfullscreen></iframe>
+          <iframe src="{site['youtube_embed']}" title="Du株 YouTube" allowfullscreen></iframe>
         </div>
         <p class="yt__note">订阅 <a href="https://www.youtube.com/@DuZhu-AYS" target="_blank" rel="noopener">@DuZhu-AYS</a> 不错过更新。</p>
       </div>
     </section>
-{follow_section()}"""
-    return page("AYS · Du株 · 好好吃饭｜循证营养科普",
-                "Du株的循证营养科普官网：怎么吃对、怎么瘦得稳、慢病饮食。配套 YouTube @DuZhu-AYS 视频。",
-                inner, SITE + "/index.html", show_channels=False)
+{follow_section(site['channels'])}"""
+    return page(site, fm.get("title", "AYS · Du株 · 好好吃饭"), fm.get("desc", ""), inner, SITE + "/index.html", show_channels=False)
 
 
 def list_page(posts):
@@ -327,7 +422,7 @@ def list_page(posts):
 {cards}
       </div>
     </main>"""
-    return page("文章 · AYS · Du株", "Du株的全部营养科普文章列表。", inner, SITE + "/articles.html")
+    return page(SITE_CONFIG, "文章 · AYS · Du株", "Du株的全部营养科普文章列表。", inner, SITE + "/articles.html")
 
 
 def article_page(p):
@@ -341,52 +436,28 @@ def article_page(p):
       {share_section(p)}
     </article>"""
     ogimg = SITE + "/" + p["cover"] if p["cover"] else ""
-    return page(p["title"] + " · AYS · Du株",
-                p["summary"] or p["title"],
-                inner, SITE + "/" + p["slug"] + ".html", ogimg)
+    return page(SITE_CONFIG, p["title"] + " · AYS · Du株", p["summary"] or p["title"], inner, SITE + "/" + p["slug"] + ".html", ogimg)
 
 
-def roadmap():
-    inner = """
-    <header class="hero">
-      <span class="hero__kicker">项目进展 · AYS</span>
-      <h1 class="hero__title">里程碑 &amp; <em>项目规划</em></h1>
-      <p class="hero__sub">用循证营养，陪你把饭吃对、把健康吃回来——我们走到哪、要去哪，都记在这里。</p>
-    </header>
+def render_about(site, content):
+    fm, body = parse_frontmatter(content)
+    h1, lead, blocks = parse_about_blocks(body)
+    cards = []
+    for b in blocks:
+        cards.append(f'''    <div class="card" style="margin-bottom:22px;">
+      <div class="card__title">{b["title"]}</div>
+      <p class="card__text">{md_to_html(b["content"])}</p>
+    </div>''')
+    inner = f"""    <main class="wrap section">
+      <h1 class="section__title">{h1 or fm.get("title", "关于")}</h1>
+      <p class="section__lead">{lead or ""}</p>
+{''.join(cards)}
+    </main>
+{follow_section(site['channels'])}"""
+    return page(site, fm.get("title", "关于 Du株 · AYS"), fm.get("desc", ""), inner, SITE + "/about.html", show_channels=False)
 
-    <section class="section--soft">
-      <div class="wrap">
-        <h2 class="section__title">🌱 项目方向</h2>
-        <p class="section__lead">不急着摊开所有计划，只说清楚两件大事。</p>
-        <div class="dir-grid">
-          <div class="dir">
-            <div class="dir__icon">🥗</div>
-            <div class="dir__name">做成值得托付的循证营养品牌</div>
-            <div class="dir__desc">不追热点、不制造焦虑，用有依据的饮食建议，陪一代人把饭吃对、把健康一口口吃回来。</div>
-            <span class="dir__tag">长期目标</span>
-          </div>
-          <div class="dir">
-            <div class="dir__icon">📚</div>
-            <div class="dir__name">把知识沉淀成可传承的系统</div>
-            <div class="dir__desc">从一份份资料，到一个五维知识库，再到课程与手册，让经验能复用、能交给时间。</div>
-            <span class="dir__tag">长期目标</span>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <section>
-      <div class="wrap">
-        <h2 class="section__title">🏁 里程碑</h2>
-        <p class="section__lead">几个值得记住的节点。</p>
-        <div class="timeline">
-          <div class="ms"><div class="ms__date">2026-10-21</div><div class="ms__title">官网正式上线</div><div class="ms__desc">对外窗口落成，六大平台渠道打通，第一次被人完整看见。</div></div>
-          <div class="ms"><div class="ms__date">2026-10-20</div><div class="ms__title">知识库奠基</div><div class="ms__desc">五维知识模型建成，沉淀逾 2000 份资料，长期主义的底盘。</div></div>
-          <div class="ms"><div class="ms__date">2026-10-16</div><div class="ms__title">项目正式启动</div><div class="ms__desc">品牌三层定位与全平台账号体系定稿——一切的起点。</div></div>
-        </div>
-      </div>
-    </section>"""
-    extra = """<style>
+ROADMAP_CSS = """<style>
 .dir-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px}
 .dir{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:26px}
 .dir__icon{font-size:26px}
@@ -402,27 +473,92 @@ def roadmap():
 .ms__desc{color:var(--text-muted);font-size:14px}
 @media (max-width:640px){.dir-grid{grid-template-columns:1fr}.dir{padding:20px}}
 </style>"""
-    return page("里程碑 & 项目规划 · AYS · Du株",
-                "AYS·Du株的项目里程碑与长期方向：循证营养科普品牌的成长节点与规划。",
-                inner, SITE + "/roadmap.html", extra_head=extra)
+
+
+def roadmap(site, content):
+    fm, hero_title, hero_sub, sections = parse_blocks(content)
+    parts = []
+    for sec in sections:
+        if "里程碑" in sec["title"]:
+            ms = []
+            for it in sec["items"]:
+                parts3 = [p.strip() for p in it.split("|")]
+                if len(parts3) >= 3:
+                    ms.append((parts3[0], parts3[1], parts3[2]))
+            ms.sort(key=lambda x: x[0], reverse=True)
+            items = "".join(
+                f'<div class="ms"><div class="ms__date">{d}</div><div class="ms__title">{t}</div><div class="ms__desc">{de}</div></div>'
+                for d, t, de in ms)
+            parts.append(f'''    <section>
+      <div class="wrap">
+        <h2 class="section__title">{sec["title"]}</h2>
+        <p class="section__lead">{sec["lead"] or ""}</p>
+        <div class="timeline">{items}</div>
+      </div>
+    </section>''')
+        else:
+            dirs = "".join(dir_html(*split_icon_title(it)) for it in sec["items"])
+            parts.append(f'''    <section class="section--soft">
+      <div class="wrap">
+        <h2 class="section__title">{sec["title"]}</h2>
+        <p class="section__lead">{sec["lead"] or ""}</p>
+        <div class="dir-grid">{dirs}</div>
+      </div>
+    </section>''')
+    inner = f"""    <header class="hero">
+      <span class="hero__kicker">{html.escape(site["kicker"])}</span>
+      <h1 class="hero__title">{hero_title}</h1>
+      <p class="hero__sub">{hero_sub}</p>
+    </header>
+{''.join(parts)}"""
+    return page(site, fm.get("title", "里程碑 & 项目规划 · AYS · Du株"), fm.get("desc", ""), inner, SITE + "/roadmap.html", extra_head=ROADMAP_CSS)
 
 
 # ---------------- 入口 ----------------
+SITE_CONFIG = None
+
+
+def parse_post(path):
+    raw = read_md(path)
+    fm, body = parse_frontmatter(raw)
+    slug = os.path.splitext(os.path.basename(path))[0]
+    return dict(
+        slug=slug,
+        title=fm.get("title", slug),
+        date=fm.get("date", ""),
+        summary=fm.get("summary", ""),
+        tags=[t.strip() for t in fm.get("tags", "").split(",") if t.strip()],
+        cover=fm.get("cover", ""),
+        html=md_to_html(body),
+    )
+
+
+def pdate(p):
+    try:
+        return datetime.datetime.strptime(p["date"], "%Y-%m-%d")
+    except Exception:
+        return datetime.datetime(1970, 1, 1)
+
+
 def main():
+    global SITE_CONFIG
     os.makedirs(POSTS_DIR, exist_ok=True)
+    SITE_CONFIG = load_site()
+
     posts = [parse_post(p) for p in glob.glob(os.path.join(POSTS_DIR, "*.md"))]
     posts.sort(key=pdate, reverse=True)
 
     with open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8") as f:
-        f.write(home(posts[:3]))
+        f.write(home(SITE_CONFIG, read_md(os.path.join(CONTENT_DIR, "home.md")), posts[:3]))
     with open(os.path.join(ROOT, "articles.html"), "w", encoding="utf-8") as f:
         f.write(list_page(posts))
     for p in posts:
         with open(os.path.join(ROOT, p["slug"] + ".html"), "w", encoding="utf-8") as f:
             f.write(article_page(p))
-
+    with open(os.path.join(ROOT, "about.html"), "w", encoding="utf-8") as f:
+        f.write(render_about(SITE_CONFIG, read_md(os.path.join(CONTENT_DIR, "about.md"))))
     with open(os.path.join(ROOT, "roadmap.html"), "w", encoding="utf-8") as f:
-        f.write(roadmap())
+        f.write(roadmap(SITE_CONFIG, read_md(os.path.join(CONTENT_DIR, "roadmap.md"))))
 
     # sitemap
     urls = [SITE + "/index.html", SITE + "/about.html", SITE + "/articles.html", SITE + "/roadmap.html"]
@@ -436,7 +572,7 @@ def main():
     with open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8") as f:
         f.write("User-agent: *\nAllow: /\nSitemap: " + SITE + "/sitemap.xml\n")
 
-    print(f"构建完成：{len(posts)} 篇文章，生成 index/articles/roadmap + {len(posts)} 篇详情 + sitemap/robots")
+    print(f"构建完成：{len(posts)} 篇文章，生成 index/about/roadmap/articles + {len(posts)} 篇详情 + sitemap/robots（内容来自 content/）")
 
 
 if __name__ == "__main__":
