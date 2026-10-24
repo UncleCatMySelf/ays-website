@@ -2,8 +2,14 @@
 brand: AYS · Du株
 kicker: AYS · 唤醒真我
 footer: © 2026 AYS · Du株 · 好好吃饭 · 内容仅供参考，不替代医疗诊断
-youtube_embed: https://www.youtube.com/embed?listType=search&list=DuZhu-AYS%20AYS%20营养
+video_mode: link
+video_src: 
 ---
+
+# 站点级设置（你改这里就能改全站导航与关注渠道）
+
+> 视频区模式（video_mode）：`link` = 海报外链卡（国内微信内可点开 B站/YouTube，默认）；
+> `bilibili` / `youtube` = 内嵌播放器，需同时在 `video_src` 填入嵌入地址（B站填 player.bilibili.com/player.html?bvid=BVxxxx）。
 
 # 站点级设置（你改这里就能改全站导航与关注渠道）
 

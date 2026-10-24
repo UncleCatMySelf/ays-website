@@ -25,6 +25,23 @@
       applyTheme(cur);
     }
 
+    // 移动端汉堡菜单：切换展开，并同步 aria-expanded
+    var tog = e.target && e.target.closest(".nav__toggle");
+    if (tog) {
+      var nav = document.getElementById("nav");
+      if (nav) {
+        var open = nav.classList.toggle("is-open");
+        tog.setAttribute("aria-expanded", open ? "true" : "false");
+      }
+      return;
+    }
+    // 点击菜单内链接后自动收起
+    var nl = e.target && e.target.closest(".nav__menu .nav__link");
+    if (nl) {
+      var nav2 = document.getElementById("nav");
+      if (nav2) nav2.classList.remove("is-open");
+    }
+
     // 二维码渠道：移动端点按出卡（桌面用 hover，由 CSS 控制）
     var qr = e.target && e.target.closest(".channel--qr");
     if (qr) {
@@ -56,6 +73,12 @@
       } else {
         location.href = u;
       }
+    }
+
+    // 点击导航以外区域收起汉堡菜单
+    if (!e.target.closest("#nav")) {
+      var nav3 = document.getElementById("nav");
+      if (nav3) nav3.classList.remove("is-open");
     }
   });
 

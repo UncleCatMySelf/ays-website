@@ -14,20 +14,25 @@
   <meta property="og:description" content="Du株的循证营养科普官网：怎么吃对、怎么瘦得稳、慢病饮食。配套 YouTube @DuZhu-AYS 视频。" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://unclecatmyself.github.io/ays-website/index.html" />
-  
+  <meta property="og:image" content="https://unclecatmyself.github.io/ays-website/assets/og-default.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="stylesheet" href="assets/style.css" />
   
 </head>
 <body>
-  <nav class="nav">
-    <div class="nav__brand">AYS · Du株</div>
+  <nav class="nav" id="nav">
+    <a class="nav__brand" href="index.html">AYS · Du株</a>
+    <button class="nav__toggle" aria-label="菜单" aria-expanded="false">☰</button>
     <div class="nav__spacer"></div>
+    <div class="nav__menu">
     <a class="nav__link" href="index.html">首页</a>
     <a class="nav__link" href="articles.html">文章</a>
     <a class="nav__link" href="about.html">关于</a>
     <a class="nav__link" href="roadmap.html">规划</a>
     <a class="nav__link nav__yt" href="https://www.youtube.com/@DuZhu-AYS" target="_blank" rel="noopener">YouTube</a>
+    </div>
     <button class="theme-toggle" aria-label="切换深色模式">🌙</button>
   </nav>
 
@@ -69,11 +74,13 @@
 
     <section class="section section--soft">
       <div class="wrap">
-        <h2 class="section__title">在 YouTube 看视频</h2>
-        <div class="yt" style="max-width:820px;margin:0 auto;">
-          <iframe src="https://www.youtube.com/embed?listType=search&list=DuZhu-AYS%20AYS%20营养" title="Du株 YouTube" allowfullscreen></iframe>
+        <h2 class="section__title">在视频平台看 Du株</h2>
+        <div class="yt-link">
+          <span class="yt-link__play">▷</span>
+          <span class="yt-link__title">循证营养短视频</span>
+          <span class="yt-link__sub">国内推荐 Bilibili，加载顺畅</span>
+          <span class="yt-link__row"><a class="yt-link__btn" href="https://space.bilibili.com/3546711997811319" target="_blank" rel="noopener">▷ 在 Bilibili 看</a><a class="yt-link__btn" href="https://www.youtube.com/@DuZhu-AYS" target="_blank" rel="noopener">在 YouTube 看</a></span>
         </div>
-        <p class="yt__note">订阅 <a href="https://www.youtube.com/@DuZhu-AYS" target="_blank" rel="noopener">@DuZhu-AYS</a> 不错过更新。</p>
       </div>
     </section>
     <section class="section wrap" style="text-align:center;">

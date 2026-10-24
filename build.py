@@ -83,6 +83,8 @@ def load_site():
         "kicker": fm.get("kicker", fm.get("brand", "AYS · Du株")),
         "footer": fm.get("footer", "© 2026 AYS · Du株 · 好好吃饭 · 内容仅供参考，不替代医疗诊断"),
         "youtube_embed": fm.get("youtube_embed", "https://www.youtube.com/embed?listType=search&list=DuZhu-AYS%20AYS%20营养"),
+        "video_mode": fm.get("video_mode", "link"),
+        "video_src": fm.get("video_src", ""),
         "nav": nav,
         "channels": channels,
     }
@@ -319,10 +321,13 @@ def nav_html(site):
             cls += " nav__yt"
         tgt = ' target="_blank" rel="noopener"' if external else ""
         links.append(f'    <a class="{cls}" href="{href}"{tgt}>{label}</a>')
-    return f'''  <nav class="nav">
-    <div class="nav__brand">{html.escape(site["brand"])}</div>
+    return f'''  <nav class="nav" id="nav">
+    <a class="nav__brand" href="index.html">{html.escape(site["brand"])}</a>
+    <button class="nav__toggle" aria-label="菜单" aria-expanded="false">☰</button>
     <div class="nav__spacer"></div>
+    <div class="nav__menu">
 {chr(10).join(links)}
+    </div>
     <button class="theme-toggle" aria-label="切换深色模式">🌙</button>
   </nav>'''
 
@@ -353,7 +358,9 @@ def page(site, title, desc, inner, url, ogimg="", extra_head="", show_channels=T
   <meta property="og:description" content="{desc}" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="{url}" />
-  {"<meta property='og:image' content='" + ogimg + "' />" if ogimg else ""}
+  <meta property="og:image" content="{ogimg or SITE + '/assets/og-default.png'}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="stylesheet" href="assets/style.css" />
   {extra_head}
@@ -367,6 +374,48 @@ def page(site, title, desc, inner, url, ogimg="", extra_head="", show_channels=T
 
 
 # ---------------- 页面模板 ----------------
+def video_section(site):
+    """首页视频区：依 video_mode 渲染。
+    - bilibili / youtube：内嵌播放器（需在 site.md 的 video_src 填嵌入地址）
+    - link（默认）：海报外链卡，国内微信内可点开 B站/YouTube，避免 YouTube 被墙打不开
+    """
+    mode = site.get("video_mode", "link")
+    src = site.get("video_src", "")
+    if mode in ("bilibili", "youtube") and src:
+        return f'''    <section class="section section--soft">
+      <div class="wrap">
+        <h2 class="section__title">在视频平台看 Du株</h2>
+        <div class="yt" style="max-width:820px;margin:0 auto;">
+          <iframe src="{src}" title="Du株 视频" allowfullscreen></iframe>
+        </div>
+        <p class="yt__note">订阅频道不错过更新。</p>
+      </div>
+    </section>'''
+    # link 模式：外链卡（国内微信环境可正常打开）
+    bili = yt = None
+    for key, name, url, logo, qr in site["channels"]:
+        if logo == "bilibili" and url:
+            bili = url
+        if logo == "youtube" and url:
+            yt = url
+    btns = ""
+    if bili:
+        btns += f'<a class="yt-link__btn" href="{bili}" target="_blank" rel="noopener">▷ 在 Bilibili 看</a>'
+    if yt:
+        btns += f'<a class="yt-link__btn" href="{yt}" target="_blank" rel="noopener">在 YouTube 看</a>'
+    return f'''    <section class="section section--soft">
+      <div class="wrap">
+        <h2 class="section__title">在视频平台看 Du株</h2>
+        <div class="yt-link">
+          <span class="yt-link__play">▷</span>
+          <span class="yt-link__title">循证营养短视频</span>
+          <span class="yt-link__sub">国内推荐 Bilibili，加载顺畅</span>
+          <span class="yt-link__row">{btns}</span>
+        </div>
+      </div>
+    </section>'''
+
+
 def home(site, content, latest):
     fm, hero_title, hero_sub, sections = parse_blocks(content)
     sec_html = []
@@ -400,15 +449,7 @@ def home(site, content, latest):
       <div style="text-align:center;margin-top:30px;"><a class="btn btn--ghost" href="articles.html">查看全部文章 →</a></div>
     </section>
 
-    <section class="section section--soft">
-      <div class="wrap">
-        <h2 class="section__title">在 YouTube 看视频</h2>
-        <div class="yt" style="max-width:820px;margin:0 auto;">
-          <iframe src="{site['youtube_embed']}" title="Du株 YouTube" allowfullscreen></iframe>
-        </div>
-        <p class="yt__note">订阅 <a href="https://www.youtube.com/@DuZhu-AYS" target="_blank" rel="noopener">@DuZhu-AYS</a> 不错过更新。</p>
-      </div>
-    </section>
+{video_section(site)}
 {follow_section(site['channels'])}"""
     return page(site, fm.get("title", "AYS · Du株 · 好好吃饭"), fm.get("desc", ""), inner, SITE + "/index.html", show_channels=False)
 
