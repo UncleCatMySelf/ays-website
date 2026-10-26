@@ -85,6 +85,7 @@ def load_site():
         "youtube_embed": fm.get("youtube_embed", "https://www.youtube.com/embed?listType=search&list=DuZhu-AYS%20AYS%20营养"),
         "video_mode": fm.get("video_mode", "link"),
         "video_src": fm.get("video_src", ""),
+        "feedback_url": fm.get("feedback_url", ""),
         "nav": nav,
         "channels": channels,
     }
@@ -332,10 +333,23 @@ def nav_html(site):
   </nav>'''
 
 
+def feedback_link(site):
+    """全站页脚意见反馈入口：仅在 feedback_url 为有效 http(s) 链接时显示。
+    用户点击在新标签打开腾讯问卷（或任意你配置的反馈链接）。"""
+    url = (site.get("feedback_url") or "").strip()
+    if url.startswith("http://") or url.startswith("https://"):
+        return f'''    <div class="footer__feedback">
+      <a href="{url}" target="_blank" rel="noopener">有想法或建议？填写意见反馈 →</a>
+    </div>'''
+    return ""
+
+
 def footer(site, show_channels=True):
     ch = channels_html(site["channels"], mini=True) if show_channels else ""
+    fb = feedback_link(site)
     return f'''  <footer class="footer">
 {ch}
+{fb}
     <div class="footer__copy">{site["footer"]}</div>
   </footer>
   <script src="assets/script.js"></script>'''
