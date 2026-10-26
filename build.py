@@ -333,23 +333,24 @@ def nav_html(site):
   </nav>'''
 
 
-def feedback_link(site):
-    """全站页脚意见反馈入口：仅在 feedback_url 为有效 http(s) 链接时显示。
-    用户点击在新标签打开腾讯问卷（或任意你配置的反馈链接）。"""
+def feedback_fab(site):
+    """全站右下角悬浮反馈按钮：仅在 feedback_url 为有效 http(s) 链接时显示。
+    胶囊形态（图标 + 反馈文字），点击在新标签打开腾讯问卷。"""
     url = (site.get("feedback_url") or "").strip()
-    if url.startswith("http://") or url.startswith("https://"):
-        return f'''    <div class="footer__feedback">
-      <a href="{url}" target="_blank" rel="noopener">有想法或建议？填写意见反馈 →</a>
-    </div>'''
-    return ""
+    if not (url.startswith("http://") or url.startswith("https://")):
+        return ""
+    return f'''  <a class="feedback-fab" href="{url}" target="_blank" rel="noopener" aria-label="填写意见反馈">
+    <span class="feedback-fab__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5z"/></svg>
+    </span>
+    <span class="feedback-fab__text">反馈</span>
+  </a>'''
 
 
 def footer(site, show_channels=True):
     ch = channels_html(site["channels"], mini=True) if show_channels else ""
-    fb = feedback_link(site)
     return f'''  <footer class="footer">
 {ch}
-{fb}
     <div class="footer__copy">{site["footer"]}</div>
   </footer>
   <script src="assets/script.js"></script>'''
@@ -383,6 +384,7 @@ def page(site, title, desc, inner, url, ogimg="", extra_head="", show_channels=T
 {nav_html(site)}
 {inner}
 {footer(site, show_channels)}
+{feedback_fab(site)}
 </body>
 </html>"""
 

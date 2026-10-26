@@ -255,9 +255,31 @@ img { max-width: 100%; height: auto; }
 .footer__row { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; justify-content: center; font-size: 14px; }
 .footer a { color: var(--text-muted); }
 .footer__copy { text-align: center; font-size: 13px; margin-top: 18px; }
-.footer__feedback { text-align: center; font-size: 14px; margin-top: 14px; }
-.footer__feedback a { color: var(--primary); font-weight: 500; }
-.footer__feedback a:hover { text-decoration: underline; }
+.feedback-fab {
+  position: fixed;
+  right: 18px;
+  bottom: 20px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 44px;
+  padding: 0 18px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(31,175,119,.35);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.feedback-fab:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(31,175,119,.42); }
+.feedback-fab__icon { display: inline-flex; }
+.feedback-fab__icon svg { display: block; }
+@media (max-width: 768px) {
+  .feedback-fab { right: 14px; bottom: 16px; height: 42px; padding: 0 16px; font-size: 14px; }
+}
 
 /* ---------- 响应式（电脑 / 平板 / 手机自适应） ---------- */
 /* 桌面大屏（>1024px）：维持默认容器与留白 */
@@ -309,7 +331,7 @@ img { max-width: 100%; height: auto; }
 
 /* ---------- 打印 ---------- */
 @media print {
-  .nav, .hero__kicker, .btn-row, .yt, .subscribe, .share, .footer { display: none !important; }
+  .nav, .hero__kicker, .btn-row, .yt, .subscribe, .share, .footer, .feedback-fab { display: none !important; }
   .channel__card { display: none !important; }
   body { color: #000; background: #fff; }
   .card { box-shadow: none; border: 1px solid #ccc; }
