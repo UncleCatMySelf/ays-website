@@ -345,7 +345,6 @@ def nav_html(site):
     <div class="nav__menu">
 {chr(10).join(links)}
     </div>
-    <button class="theme-toggle" aria-label="切换深色模式">🌙</button>
   </nav>'''
 
 
@@ -374,7 +373,7 @@ def footer(site, show_channels=True):
 
 def page(site, title, desc, inner, url, ogimg="", extra_head="", show_channels=True):
     return f"""<!DOCTYPE html>
-<html lang="zh-CN" data-theme="light">
+<html lang="zh-CN">
 <head>
   <!-- 本文件由 build.py 自动生成（生成日期随每次构建刷新），请勿手动修改；改文案见 content/*.md，改样式见 assets/style.css -->
   <meta charset="UTF-8" />

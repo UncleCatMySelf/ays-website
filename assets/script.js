@@ -7,10 +7,10 @@
  * 版本：v1.0.0（首次合规归档）
  * 用途：官网前端交互脚本（原生 JS，无框架、无第三方库）
  * 主要作用：
- *   - 深色模式切换（localStorage 记忆偏好）
  *   - 导航汉堡菜单（≤768px 折叠 / 点链接收起 / 点外部关闭）
  *   - 关注渠道弹卡（悬停或移动端点按 切换二维码 / 外链卡）
  *   - 文章页"复制链接"、页脚年份等小交互
+ *   - 注：官网为固定浅色品牌基调（无深色模式切换），故本脚本不含主题切换逻辑
  * 依赖：无
  * 合规说明：仅前端交互、不含密钥；与 assets/style.css 配套
  * ======================================================================== */
@@ -18,29 +18,7 @@
 (function () {
   "use strict";
 
-  var root = document.documentElement;
-  var stored = null;
-  try { stored = localStorage.getItem("ays-theme"); } catch (e) {}
-  if (stored === "dark" || stored === "light") {
-    root.setAttribute("data-theme", stored);
-  } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-    root.setAttribute("data-theme", "dark");
-  }
-
-  function applyTheme(t) {
-    root.setAttribute("data-theme", t);
-    try { localStorage.setItem("ays-theme", t); } catch (e) {}
-    var btn = document.querySelector(".theme-toggle");
-    if (btn) btn.textContent = t === "dark" ? "☀️" : "🌙";
-  }
-
   document.addEventListener("click", function (e) {
-    // 深色模式切换
-    if (e.target && e.target.closest(".theme-toggle")) {
-      var cur = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-      applyTheme(cur);
-    }
-
     // 移动端汉堡菜单：切换展开，并同步 aria-expanded
     var tog = e.target && e.target.closest(".nav__toggle");
     if (tog) {
@@ -97,10 +75,6 @@
       if (nav3) nav3.classList.remove("is-open");
     }
   });
-
-  // 初始化按钮图标
-  var initBtn = document.querySelector(".theme-toggle");
-  if (initBtn) initBtn.textContent = root.getAttribute("data-theme") === "dark" ? "☀️" : "🌙";
 
   // 页脚年份
   var y = document.querySelector("[data-year]");

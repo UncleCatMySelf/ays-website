@@ -17,40 +17,27 @@
 
 /* ============================================================
    AYS · Du株 · 好好吃饭  —  品牌官网样式
-   设计基调：薄荷绿 / 扁平 / 清爽 / 可打印 / 深色模式
+   设计基调：薄荷绿 / 扁平 / 清爽 / 可打印 / 固定浅色品牌基调（无深色模式）
    ============================================================ */
 
 :root {
-  --bg: #ffffff;
-  --bg-soft: #f4f9f6;
-  --surface: #ffffff;
-  --surface-2: #eef6f1;
-  --text: #16241d;
-  --text-muted: #5b6b62;
-  --primary: #1faf77;
+  /* 固定浅色品牌基调（2026-10-27 移除深色模式，全站统一薄荷浅底） */
+  --bg: #e3f5ec;            /* 整页薄荷底（主背景） */
+  --bg-soft: #ffffff;       /* 次级区块 / 页脚白底，制造层次 */
+  --surface: #ffffff;       /* 卡片白 */
+  --surface-2: #eef6f1;     /* 输入框 / 标签浅薄荷底 */
+  --text: #16241d;          /* 深墨绿正文 */
+  --text-muted: #4f6158;    /* 次级文字 */
+  --primary: #1faf77;       /* 薄荷主色 */
   --primary-strong: #138a5c;
-  --primary-soft: #e3f5ec;
-  --border: #e2ece6;
+  --primary-soft: #d3efe2;  /* 标签底（比 bg 更浅） */
+  --border: #cfe7da;        /* 薄荷边线 */
   --shadow: 0 6px 24px rgba(20, 60, 40, .08);
   --radius: 16px;
   --radius-sm: 10px;
   --maxw: 1080px;
   --font: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui,
           -apple-system, "Segoe UI", Roboto, sans-serif;
-}
-
-:root[data-theme="dark"] {
-  --bg: #0e1714;
-  --bg-soft: #122019;
-  --surface: #15211b;
-  --surface-2: #1b2a22;
-  --text: #e7f0ea;
-  --text-muted: #9fb3a8;
-  --primary: #38d394;
-  --primary-strong: #2bbd83;
-  --primary-soft: #16332a;
-  --border: #243a30;
-  --shadow: 0 6px 24px rgba(0, 0, 0, .35);
 }
 
 * { box-sizing: border-box; }
@@ -65,7 +52,6 @@ body {
   line-height: 1.75;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
-  transition: background .25s ease, color .25s ease;
 }
 @supports (overflow-x: clip) { body { overflow-x: clip; } }
 
@@ -103,12 +89,6 @@ img { max-width: 100%; height: auto; }
   border-radius: 999px; font-weight: 700; font-size: 14px;
 }
 .nav__yt:hover { opacity: .9; text-decoration: none; }
-.theme-toggle {
-  border: 1px solid var(--border); background: var(--surface-2);
-  color: var(--text); width: 42px; height: 42px; border-radius: 50%;
-  cursor: pointer; font-size: 18px; line-height: 1;
-}
-.theme-toggle:hover { border-color: var(--primary); }
 
 /* ---------- 容器 ---------- */
 .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 22px; }
@@ -118,21 +98,20 @@ img { max-width: 100%; height: auto; }
 /* ---------- Hero ---------- */
 .hero {
   padding: 88px 0 72px;
-  background:
-    radial-gradient(1200px 400px at 80% -10%, var(--primary-soft), transparent 60%),
-    var(--bg);
+  background: var(--primary);
+  color: #ffffff;
   text-align: center;
 }
 .hero__kicker {
   display: inline-block; letter-spacing: 3px; font-size: 13px; font-weight: 700;
-  color: var(--primary-strong); text-transform: uppercase; margin-bottom: 14px;
+  color: #d6f2e6; text-transform: uppercase; margin-bottom: 14px;
 }
 .hero__title {
   font-size: clamp(32px, 6vw, 56px); line-height: 1.15; margin: 0 0 18px;
   font-weight: 900; letter-spacing: -.5px;
 }
-.hero__title em { color: var(--primary); font-style: normal; }
-.hero__sub { font-size: clamp(16px, 2.4vw, 20px); color: var(--text-muted); max-width: 640px; margin: 0 auto 30px; }
+.hero__title em { color: #eafff5; font-style: normal; }
+.hero__sub { font-size: clamp(16px, 2.4vw, 20px); color: rgba(255,255,255,.92); max-width: 640px; margin: 0 auto 30px; }
 .btn {
   display: inline-block; padding: 13px 26px; border-radius: 999px;
   font-weight: 700; font-size: 15px; cursor: pointer; border: 0;
@@ -351,5 +330,7 @@ img { max-width: 100%; height: auto; }
   .nav, .hero__kicker, .btn-row, .yt, .subscribe, .share, .footer, .feedback-fab { display: none !important; }
   .channel__card { display: none !important; }
   body { color: #000; background: #fff; }
+  .hero { background: #fff !important; color: #000 !important; padding: 24px 0 !important; }
+  .hero__title, .hero__title em, .hero__sub, .hero__kicker { color: #000 !important; }
   .card { box-shadow: none; border: 1px solid #ccc; }
 }
