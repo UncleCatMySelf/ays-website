@@ -1,6 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+============================================================================
+ 文件：build.py
+ 项目：AYS · Du株 · 好好吃饭 官网（GitHub Pages 静态站）
+ 作者：神启（AI 助手，代主理人 Du株 维护）
+ 创建日期：2026-10-22（内容驱动架构重构）
+ 最近维护：2026-10-27
+ 版本：v1.0.0（首次合规归档）
+ 用途：官网「内容驱动」构建引擎——读取 content/*.md 生成全站页面。
+ 主要作用：解析 site/home/about/roadmap.md 与 posts/*.md，输出 index/about/
+   roadmap/articles 及文章详情页，并生成 sitemap.xml 与 robots.txt；统一产出
+   全站导航、页脚、深色模式、响应式、SEO、YouTube 外链卡、意见反馈悬浮按钮。
+ 依赖：Python 3 标准库（os/re/glob/html/datetime），无第三方包
+ 合规说明：本文件为「生成器」，产物 *.html 自动生成请勿手改；改文案改
+   content/*.md，改样式改 assets/style.css；不含任何密钥，问卷链接由
+   site.md 的 feedback_url 配置。
+============================================================================
 AYS 官网 · 内容驱动构建引擎
 用法：python build.py
 设计原则：内容（文案）与代码/样式彻底分离
@@ -360,6 +376,7 @@ def page(site, title, desc, inner, url, ogimg="", extra_head="", show_channels=T
     return f"""<!DOCTYPE html>
 <html lang="zh-CN" data-theme="light">
 <head>
+  <!-- 本文件由 build.py 自动生成（生成日期随每次构建刷新），请勿手动修改；改文案见 content/*.md，改样式见 assets/style.css -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title}</title>
