@@ -522,7 +522,8 @@ SPONSOR_ITEMS = [
 
 PERSON_MARK_RE = re.compile(r"\[\[PERSON:([a-z]+)\]\]")
 PERSON_IMG = {
-    "avatar": ("assets/avatar.jpg", "person__img--round", "AYS 唤醒真我 头像"),
+    # 两张人物图统一为「圆角方形」：同一尺寸、同一圆角、同一描边，避免一圆一方割裂
+    "avatar": ("assets/avatar.jpg", "person__img--square", "AYS 唤醒真我 头像"),
     "duzhu": ("assets/duzhu-photo-square.jpg", "person__img--square", "Du株 照片"),
 }
 
@@ -575,7 +576,7 @@ def load_letters():
 
 
 def letters_block(letters):
-    """关于页「主理人寄语」卡内的最新一期摘要；尚无内容时显示预告态。"""
+    """关于页「主理人Du株 · 寄语」卡内的最新一期摘要；尚无内容时显示预告态。"""
     if not letters:
         return '''    <div class="letter letter--pending">
       <div class="letter__meta"><span class="letter__badge">2026</span><span class="letter__date">11.01</span></div>
@@ -607,18 +608,18 @@ def letters_page(site, letters):
       <p class="letter__excerpt">首期主理人寄语将于 2026 年 11 月 1 日发布，此后每年一封，全部收录在这里。</p>
     </div>'''
     inner = f"""    <main class="wrap section">
-      <h1 class="section__title">主理人寄语</h1>
+      <h1 class="section__title">主理人Du株 · 寄语</h1>
       <p class="section__lead">每年 11 月 1 日一封，逐年收录。</p>
 {body}
       <p class="backlink"><a href="about.html">← 返回关于</a></p>
     </main>"""
-    return page(site, "主理人寄语 · AYS · Du株", "AYS 主理人 Du株 每年 11 月 1 日写给读者的一封信，按年份收录。", inner, SITE + "/letters.html")
+    return page(site, "主理人Du株 · 寄语 · AYS", "AYS 主理人 Du株 每年 11 月 1 日写给读者的一封信，按年份收录。", inner, SITE + "/letters.html")
 
 
 def letter_page(site, it):
     inner = f"""    <main class="wrap section letter-view">
       <h1 class="section__title">{html.escape(it["title"])}</h1>
-      <p class="letter-view__date">{ymd_cn(it["date"])} · 主理人寄语</p>
+      <p class="letter-view__date">{ymd_cn(it["date"])} · 主理人Du株 · 寄语</p>
       <div class="letter-view__body">
 {it["html"]}
       </div>

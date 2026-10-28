@@ -141,11 +141,11 @@ img { max-width: 100%; height: auto; }
 .card__text p + p { margin-top: 8px; }
 .card__text ul, .card__text ol { margin: 8px 0 0; padding-left: 20px; line-height: 1.7; }
 
-/* 关于页人物卡：左图右文（图片由 about.md 的 [[PERSON:xxx]] 标记注入） */
+/* 关于页人物卡：左图右文（图片由 about.md 的 [[PERSON:xxx]] 标记注入）
+   统一规格：两张人物图都是 88×88 圆角方形 + 3px 淡薄荷描边，视觉语言一致 */
 .person__row { display: flex; gap: 20px; align-items: flex-start; }
 .person__media { flex: none; }
 .person__img { display: block; width: 88px; height: 88px; object-fit: cover; }
-.person__img--round { border-radius: 50%; border: 3px solid var(--primary-soft); }
 .person__img--square { border-radius: 16px; border: 3px solid var(--surface-2); }
 .person__body { flex: 1; min-width: 0; }
 .person__body .card__title { margin-top: 0; }
