@@ -513,14 +513,44 @@ def article_page(p):
     return page(SITE_CONFIG, p["title"] + " · AYS · Du株", p["summary"] or p["title"], inner, SITE + "/" + p["slug"] + ".html", ogimg)
 
 
+SPONSOR_MARK = "[[SPONSOR]]"
+SPONSOR_ITEMS = [
+    ("assets/qr/qr-sponsor-wechat.png", "微信", "扫一扫"),
+    ("assets/qr/qr-sponsor-alipay.png", "支付宝", "保存图片后扫一扫"),
+]
+
+
+def sponsor_grid():
+    """赞助收款码双卡：仅在 about.md 卡片内容里出现 [[SPONSOR]] 标记时渲染。
+    图片为本地静态素材（已裁切干净、含白静区），无需联网。"""
+    items = "".join(
+        f'''      <div class="sponsor__item">
+        <span class="sponsor__qr"><img src="{src}" alt="{name}收款码" loading="lazy" /></span>
+        <span class="sponsor__name">{name}</span>
+        <span class="sponsor__hint">{hint}</span>
+      </div>
+''' for src, name, hint in SPONSOR_ITEMS)
+    return f'''    <div class="sponsor__grid">
+{items}    </div>
+    <p class="sponsor__note">在微信里打开时，支付宝码需先保存图片，再到支付宝「扫一扫」里从相册选取。</p>'''
+
+
 def render_about(site, content):
     fm, body = parse_frontmatter(content)
     h1, lead, blocks = parse_about_blocks(body)
     cards = []
     for b in blocks:
+        if SPONSOR_MARK in b["content"]:
+            text = md_to_html(b["content"].replace(SPONSOR_MARK, "").strip())
+            cards.append(f'''    <div class="card" style="margin-bottom:22px;">
+      <div class="card__title">{b["title"]}</div>
+      <div class="card__text">{text}</div>
+{sponsor_grid()}
+    </div>''')
+            continue
         cards.append(f'''    <div class="card" style="margin-bottom:22px;">
       <div class="card__title">{b["title"]}</div>
-      <p class="card__text">{md_to_html(b["content"])}</p>
+      <div class="card__text">{md_to_html(b["content"])}</div>
     </div>''')
     inner = f"""    <main class="wrap section">
       <h1 class="section__title">{h1 or fm.get("title", "关于")}</h1>

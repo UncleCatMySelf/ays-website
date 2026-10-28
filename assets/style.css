@@ -137,6 +137,21 @@ img { max-width: 100%; height: auto; }
 .card__icon { font-size: 30px; }
 .card__title { font-size: 19px; font-weight: 800; margin: 12px 0 8px; }
 .card__text { color: var(--text-muted); font-size: 15px; margin: 0; }
+.card__text p { margin: 0; }
+.card__text p + p { margin-top: 8px; }
+.card__text ul, .card__text ol { margin: 8px 0 0; padding-left: 20px; line-height: 1.7; }
+
+/* 赞助收款码双卡（关于页「支持这个项目」区块，由 build.py 的 sponsor_grid() 生成） */
+.sponsor__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 240px)); justify-content: center; gap: 14px; margin-top: 16px; }
+.sponsor__item { text-align: center; }
+.sponsor__qr {
+  display: block; background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 8px;
+}
+.sponsor__qr img { display: block; width: 100%; height: auto; border-radius: 6px; }
+.sponsor__name { display: block; margin-top: 9px; font-size: 14px; font-weight: 700; color: var(--primary-strong); }
+.sponsor__hint { display: block; margin-top: 2px; font-size: 12px; color: var(--text-muted); }
+.sponsor__note { font-size: 12.5px; color: var(--text-muted); line-height: 1.6; margin: 14px 0 0; }
 .card__link { display: inline-block; margin-top: 14px; font-weight: 700; }
 
 /* ---------- 文章列表卡 ---------- */
