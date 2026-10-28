@@ -34,6 +34,7 @@ import os, re, glob, html, datetime
 ROOT = os.path.dirname(os.path.abspath(__file__))
 POSTS_DIR = os.path.join(ROOT, "posts")
 CONTENT_DIR = os.path.join(ROOT, "content")
+LETTERS_DIR = os.path.join(CONTENT_DIR, "letters")
 SITE = "https://unclecatmyself.github.io/ays-website"
 REPO = "UncleCatMySelf/ays-website"
 
@@ -515,42 +516,153 @@ def article_page(p):
 
 SPONSOR_MARK = "[[SPONSOR]]"
 SPONSOR_ITEMS = [
-    ("assets/qr/qr-sponsor-wechat.png", "微信", "扫一扫"),
-    ("assets/qr/qr-sponsor-alipay.png", "支付宝", "保存图片后扫一扫"),
+    ("assets/qr/qr-sponsor-wechat.png", "微信", "WeChat"),
+    ("assets/qr/qr-sponsor-alipay.png", "支付宝", "Alipay"),
 ]
+
+PERSON_MARK_RE = re.compile(r"\[\[PERSON:([a-z]+)\]\]")
+PERSON_IMG = {
+    "avatar": ("assets/avatar.jpg", "person__img--round", "AYS 唤醒真我 头像"),
+    "duzhu": ("assets/duzhu-photo-square.jpg", "person__img--square", "Du株 照片"),
+}
 
 
 def sponsor_grid():
-    """赞助收款码双卡：仅在 about.md 卡片内容里出现 [[SPONSOR]] 标记时渲染。
-    图片为本地静态素材（已裁切干净、含白静区），无需联网。"""
+    """赞助收款码双卡：中英文平台名 + 统一「扫一扫」。
+    仅在 about.md 卡片内容里出现 [[SPONSOR]] 标记时渲染；图片为本地静态素材（已裁白静区）。"""
     items = "".join(
         f'''      <div class="sponsor__item">
-        <span class="sponsor__qr"><img src="{src}" alt="{name}收款码" loading="lazy" /></span>
-        <span class="sponsor__name">{name}</span>
-        <span class="sponsor__hint">{hint}</span>
+        <span class="sponsor__qr"><img src="{src}" alt="{cn}收款码 {en}" loading="lazy" /></span>
+        <span class="sponsor__name">{cn}<span class="sponsor__en">{en}</span></span>
+        <span class="sponsor__hint">扫一扫</span>
       </div>
-''' for src, name, hint in SPONSOR_ITEMS)
+''' for src, cn, en in SPONSOR_ITEMS)
     return f'''    <div class="sponsor__grid">
-{items}    </div>
-    <p class="sponsor__note">在微信里打开时，支付宝码需先保存图片，再到支付宝「扫一扫」里从相册选取。</p>'''
+{items}    </div>'''
+
+
+# ---------------- 主理人寄语（每年 11.01 一封，按时间维度归档） ----------------
+def ymd_cn(d):
+    """日期显示：2026-11-01 -> 2026.11.01；解析失败原样返回。"""
+    try:
+        return datetime.datetime.strptime(d, "%Y-%m-%d").strftime("%Y.%m.%d")
+    except Exception:
+        return d
+
+
+def load_letters():
+    """读取 content/letters/*.md，按日期倒序。文件名（YYYY）即年份标识。
+    用户每年 11 月 1 日新增一个 md，即自动成为「最新一期」，旧文自动进往期归档。"""
+    items = []
+    if not os.path.isdir(LETTERS_DIR):
+        return items
+    for path in sorted(glob.glob(os.path.join(LETTERS_DIR, "*.md"))):
+        name = os.path.basename(path)
+        if name.startswith("_"):        # 下划线开头=模板/草稿，不参与构建
+            continue
+        fm, body = parse_frontmatter(read_md(path))
+        year = fm.get("year") or os.path.splitext(os.path.basename(path))[0]
+        items.append(dict(
+            year=str(year),
+            slug="letter-" + str(year),
+            title=fm.get("title", f"{year} 年主理人寄语"),
+            date=fm.get("date", ""),
+            summary=fm.get("summary", ""),
+            html=md_to_html(body),
+        ))
+    items.sort(key=lambda x: (str(x["date"]), x["year"]), reverse=True)
+    return items
+
+
+def letters_block(letters):
+    """关于页「主理人寄语」卡内的最新一期摘要；尚无内容时显示预告态。"""
+    if not letters:
+        return '''    <div class="letter letter--pending">
+      <div class="letter__meta"><span class="letter__badge">2026</span><span class="letter__date">11.01</span></div>
+      <p class="letter__excerpt">首期主理人寄语将于 2026 年 11 月 1 日发布，此后每年一封。</p>
+    </div>'''
+    top = letters[0]
+    more = '<a class="letter__more letter__more--sub" href="letters.html">往期寄语</a>' if len(letters) > 1 else ""
+    return f'''    <div class="letter">
+      <div class="letter__meta"><span class="letter__badge">{top["year"]}</span><span class="letter__date">{ymd_cn(top["date"])}</span></div>
+      <div class="letter__title">{html.escape(top["title"])}</div>
+      <p class="letter__excerpt">{html.escape(top["summary"])}</p>
+      <div class="letter__foot"><a class="letter__more" href="{top["slug"]}.html">阅读全文 →</a>{more}</div>
+    </div>'''
+
+
+def letters_page(site, letters):
+    """寄语归档页：按年份倒序列出全部寄语（含预告态）。"""
+    if letters:
+        rows = "".join(f'''      <a class="lrow" href="{it["slug"]}.html">
+        <span class="lrow__year">{it["year"]}</span>
+        <span class="lrow__body"><span class="lrow__title">{html.escape(it["title"])}</span><span class="lrow__sum">{html.escape(it["summary"])}</span></span>
+        <span class="lrow__date">{ymd_cn(it["date"])}</span>
+      </a>
+''' for it in letters)
+        body = f'    <div class="llist">\n{rows}    </div>'
+    else:
+        body = '''    <div class="letter letter--pending">
+      <div class="letter__meta"><span class="letter__badge">2026</span><span class="letter__date">11.01</span></div>
+      <p class="letter__excerpt">首期主理人寄语将于 2026 年 11 月 1 日发布，此后每年一封，全部收录在这里。</p>
+    </div>'''
+    inner = f"""    <main class="wrap section">
+      <h1 class="section__title">主理人寄语</h1>
+      <p class="section__lead">每年 11 月 1 日一封，逐年收录。</p>
+{body}
+      <p class="backlink"><a href="about.html">← 返回关于</a></p>
+    </main>"""
+    return page(site, "主理人寄语 · AYS · Du株", "AYS 主理人 Du株 每年 11 月 1 日写给读者的一封信，按年份收录。", inner, SITE + "/letters.html")
+
+
+def letter_page(site, it):
+    inner = f"""    <main class="wrap section letter-view">
+      <h1 class="section__title">{html.escape(it["title"])}</h1>
+      <p class="letter-view__date">{ymd_cn(it["date"])} · 主理人寄语</p>
+      <div class="letter-view__body">
+{it["html"]}
+      </div>
+      <p class="backlink"><a href="letters.html">← 全部寄语</a></p>
+    </main>"""
+    return page(site, it["title"] + " · AYS · Du株", it["summary"] or it["title"], inner, SITE + "/" + it["slug"] + ".html")
 
 
 def render_about(site, content):
     fm, body = parse_frontmatter(content)
     h1, lead, blocks = parse_about_blocks(body)
+    letters = load_letters()
     cards = []
     for b in blocks:
-        if SPONSOR_MARK in b["content"]:
-            text = md_to_html(b["content"].replace(SPONSOR_MARK, "").strip())
+        raw = b["content"]
+        media = ""
+        m = PERSON_MARK_RE.search(raw)
+        if m:
+            src, cls, alt = PERSON_IMG.get(m.group(1), ("", "", ""))
+            if src:
+                media = f'<div class="person__media"><img class="person__img {cls}" src="{src}" alt="{alt}" loading="lazy" /></div>'
+            raw = raw.replace(m.group(0), "")
+        extra = ""
+        if "[[LETTERS]]" in raw:
+            extra += "\n" + letters_block(letters)
+            raw = raw.replace("[[LETTERS]]", "")
+        if SPONSOR_MARK in raw:
+            extra += "\n" + sponsor_grid()
+            raw = raw.replace(SPONSOR_MARK, "")
+        text = md_to_html(raw.strip())
+        if media:
+            cards.append(f'''    <div class="card card--person" style="margin-bottom:22px;">
+      <div class="person__row">
+        {media}
+        <div class="person__body">
+          <div class="card__title">{b["title"]}</div>
+          <div class="card__text">{text}</div>
+        </div>
+      </div>{extra}
+    </div>''')
+        else:
             cards.append(f'''    <div class="card" style="margin-bottom:22px;">
       <div class="card__title">{b["title"]}</div>
-      <div class="card__text">{text}</div>
-{sponsor_grid()}
-    </div>''')
-            continue
-        cards.append(f'''    <div class="card" style="margin-bottom:22px;">
-      <div class="card__title">{b["title"]}</div>
-      <div class="card__text">{md_to_html(b["content"])}</div>
+      <div class="card__text">{text}</div>{extra}
     </div>''')
     inner = f"""    <main class="wrap section">
       <h1 class="section__title">{h1 or fm.get("title", "关于")}</h1>
@@ -664,9 +776,18 @@ def main():
     with open(os.path.join(ROOT, "roadmap.html"), "w", encoding="utf-8") as f:
         f.write(roadmap(SITE_CONFIG, read_md(os.path.join(CONTENT_DIR, "roadmap.md"))))
 
+    letters = load_letters()
+    with open(os.path.join(ROOT, "letters.html"), "w", encoding="utf-8") as f:
+        f.write(letters_page(SITE_CONFIG, letters))
+    for it in letters:
+        with open(os.path.join(ROOT, it["slug"] + ".html"), "w", encoding="utf-8") as f:
+            f.write(letter_page(SITE_CONFIG, it))
+
     # sitemap
-    urls = [SITE + "/index.html", SITE + "/about.html", SITE + "/articles.html", SITE + "/roadmap.html"]
+    urls = [SITE + "/index.html", SITE + "/about.html", SITE + "/articles.html",
+            SITE + "/roadmap.html", SITE + "/letters.html"]
     urls += [SITE + "/" + p["slug"] + ".html" for p in posts]
+    urls += [SITE + "/" + it["slug"] + ".html" for it in letters]
     sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     for u in urls:
         sm += f"  <url><loc>{html.escape(u)}</loc></url>\n"
@@ -676,7 +797,7 @@ def main():
     with open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8") as f:
         f.write("User-agent: *\nAllow: /\nSitemap: " + SITE + "/sitemap.xml\n")
 
-    print(f"构建完成：{len(posts)} 篇文章，生成 index/about/roadmap/articles + {len(posts)} 篇详情 + sitemap/robots（内容来自 content/）")
+    print(f"构建完成：{len(posts)} 篇文章，{len(letters)} 篇主理人寄语，生成 index/about/roadmap/articles/letters + 详情页 + sitemap/robots（内容来自 content/）")
 
 
 if __name__ == "__main__":

@@ -141,6 +141,15 @@ img { max-width: 100%; height: auto; }
 .card__text p + p { margin-top: 8px; }
 .card__text ul, .card__text ol { margin: 8px 0 0; padding-left: 20px; line-height: 1.7; }
 
+/* 关于页人物卡：左图右文（图片由 about.md 的 [[PERSON:xxx]] 标记注入） */
+.person__row { display: flex; gap: 20px; align-items: flex-start; }
+.person__media { flex: none; }
+.person__img { display: block; width: 88px; height: 88px; object-fit: cover; }
+.person__img--round { border-radius: 50%; border: 3px solid var(--primary-soft); }
+.person__img--square { border-radius: 16px; border: 3px solid var(--surface-2); }
+.person__body { flex: 1; min-width: 0; }
+.person__body .card__title { margin-top: 0; }
+
 /* 赞助收款码双卡（关于页「支持这个项目」区块，由 build.py 的 sponsor_grid() 生成） */
 .sponsor__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 240px)); justify-content: center; gap: 14px; margin-top: 16px; }
 .sponsor__item { text-align: center; }
@@ -150,8 +159,48 @@ img { max-width: 100%; height: auto; }
 }
 .sponsor__qr img { display: block; width: 100%; height: auto; border-radius: 6px; }
 .sponsor__name { display: block; margin-top: 9px; font-size: 14px; font-weight: 700; color: var(--primary-strong); }
+.sponsor__en { margin-left: 6px; font-size: 11.5px; font-weight: 600; color: var(--text-muted); letter-spacing: .2px; }
 .sponsor__hint { display: block; margin-top: 2px; font-size: 12px; color: var(--text-muted); }
-.sponsor__note { font-size: 12.5px; color: var(--text-muted); line-height: 1.6; margin: 14px 0 0; }
+
+/* 主理人寄语：关于页摘要卡 / 归档页 / 详情页（内容源 content/letters/*.md，每年 11.01 一封） */
+.letter { margin-top: 16px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
+.letter--pending { border-style: dashed; }
+.letter__meta { display: flex; align-items: center; gap: 8px; }
+.letter__badge { font-size: 12px; font-weight: 800; color: #fff; background: var(--primary); border-radius: 999px; padding: 2px 9px; letter-spacing: .5px; }
+.letter__date { font-size: 12.5px; color: var(--text-muted); }
+.letter__title { font-size: 16px; font-weight: 700; margin: 9px 0 0; }
+.letter__excerpt { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin: 6px 0 0; }
+.letter__foot { display: flex; gap: 16px; margin-top: 10px; }
+.letter__more { font-size: 13.5px; font-weight: 700; color: var(--primary-strong); }
+.letter__more--sub { font-weight: 500; color: var(--text-muted); }
+
+.llist { display: grid; gap: 12px; margin-top: 8px; }
+.lrow { display: flex; align-items: center; gap: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
+.lrow:hover { border-color: var(--primary); text-decoration: none; }
+.lrow__year { flex: none; font-size: 20px; font-weight: 800; color: var(--primary-strong); }
+.lrow__body { flex: 1; min-width: 0; display: block; }
+.lrow__title { display: block; font-weight: 700; color: var(--text); }
+.lrow__sum { display: block; font-size: 13.5px; color: var(--text-muted); margin-top: 2px; }
+.lrow__date { flex: none; font-size: 12.5px; color: var(--text-muted); }
+.backlink { margin-top: 26px; font-size: 14px; }
+.backlink a { color: var(--primary-strong); font-weight: 600; }
+
+.letter-view__date { margin: -6px 0 22px; font-size: 13px; color: var(--text-muted); }
+.letter-view__body { font-size: 16px; line-height: 1.9; }
+.letter-view__body p { margin: 0 0 16px; }
+.letter-view__body ul, .letter-view__body ol { margin: 0 0 16px; padding-left: 22px; }
+.letter-view__body h2 { font-size: 19px; margin: 28px 0 10px; }
+.letter-view__body blockquote { margin: 0 0 16px; padding-left: 14px; border-left: 3px solid var(--primary-soft); color: var(--text-muted); }
+
+@media (max-width: 640px) {
+  .person__row { gap: 14px; }
+  .person__img { width: 68px; height: 68px; }
+  .person__img--square { border-radius: 14px; }
+  .letter { padding: 14px; }
+  .lrow { flex-wrap: wrap; gap: 10px 12px; padding: 14px; }
+  .lrow__date { order: 3; width: 100%; }
+}
+
 .card__link { display: inline-block; margin-top: 14px; font-weight: 700; }
 
 /* ---------- 文章列表卡 ---------- */
