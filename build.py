@@ -326,7 +326,7 @@ def channels_html(channels, mini=False):
 
 def follow_section(channels):
     return """    <section class="section wrap" style="text-align:center;">
-      <h2 class="section__title">关注 Du株 · 全平台</h2>
+      <h2 class="section__title">欢迎关注 · 全平台</h2>
 """ + channels_html(channels) + """
     </section>"""
 

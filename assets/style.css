@@ -264,7 +264,7 @@ img { max-width: 100%; height: auto; }
 }
 .subscribe button { border: 0; }
 
-/* ---------- 关注 Du株 · 全平台渠道 ---------- */
+/* ---------- 关注渠道（欢迎关注 · 全平台） ---------- */
 .channels { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; margin: 8px auto 0; }
 .channel {
   position: relative; display: inline-flex; flex-direction: column; align-items: center; gap: 8px;
