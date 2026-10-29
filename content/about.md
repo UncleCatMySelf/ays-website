@@ -29,8 +29,8 @@ desc: AYS 唤醒真我（Awaken YourSelf）——营养科普创作。好好吃�
 
 欢迎内容共创、品牌合作等。可直接发邮件联系：
 
-- <arousalzhu@126.com>
-- <duzhu94@gmail.com>
+- [arousalzhu@126.com](mailto:arousalzhu@126.com)
+- [duzhu94@gmail.com](mailto:duzhu94@gmail.com)
 
 ## 支持这个项目
 
