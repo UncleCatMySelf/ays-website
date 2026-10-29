@@ -261,13 +261,14 @@ def card_html(icon, title, desc):
 
 
 def dir_html(icon, title, desc):
-    ic = f'<div class="dir__icon">{icon}</div>' if icon else ""
-    return f'''          <div class="dir">
-            {ic}
-            <div class="dir__name">{title}</div>
-            <div class="dir__desc">{desc}</div>
-            <span class="dir__tag">长期目标</span>
-          </div>'''
+    ic = f'<div class="rd-dir__icon">{icon}</div>' if icon else ""
+    return f'''        <div class="rd-dir">
+          {ic}
+          <div class="rd-dir__eyebrow">FOCUS</div>
+          <div class="rd-dir__name">{title}</div>
+          <p class="rd-dir__desc">{desc}</p>
+          <span class="rd-dir__tag">第一优先级</span>
+        </div>'''
 
 
 # ---------------- 片段 ----------------
@@ -678,20 +679,36 @@ def render_about(site, content):
 
 
 ROADMAP_CSS = """<style>
-.dir-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px}
-.dir{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:26px}
-.dir__icon{font-size:26px}
-.dir__name{font-size:19px;font-weight:800;margin:8px 0 8px}
-.dir__desc{color:var(--text-muted);font-size:15px}
-.dir__tag{display:inline-block;margin-top:14px;font-size:12px;font-weight:800;color:var(--primary-strong);background:var(--primary-soft);padding:4px 12px;border-radius:999px}
-.timeline{position:relative;margin:8px 0 0 8px;padding-left:30px}
-.timeline::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:var(--border)}
-.ms{position:relative;margin-bottom:26px}
-.ms::before{content:"";position:absolute;left:-30px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--primary);border:3px solid var(--bg);box-shadow:0 0 0 2px var(--primary-soft)}
-.ms__date{font-size:13px;font-weight:800;color:var(--primary-strong);letter-spacing:.5px}
-.ms__title{font-size:17px;font-weight:700;margin:2px 0 3px}
-.ms__desc{color:var(--text-muted);font-size:14px}
-@media (max-width:640px){.dir-grid{grid-template-columns:1fr}.dir{padding:20px}}
+/* 规划页专属样式（2026-10-29 v1.1 B 版：宣言卡 + 编号卡片） */
+/* 项目方向：居中宣言卡 */
+.rd-dirs{display:grid;gap:18px;margin:8px 0 0}
+.rd-dir{background:radial-gradient(130% 150% at 50% 0%,#f4fcf8 0%,#fff 58%);border:1px solid var(--border);border-radius:26px;box-shadow:var(--shadow);padding:40px 34px 34px;text-align:center}
+.rd-dir__icon{width:74px;height:74px;margin:0 auto 18px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:32px;box-shadow:0 0 0 9px var(--primary-soft),inset 0 0 0 1px #e6f6ee}
+.rd-dir__eyebrow{font-size:12px;font-weight:800;letter-spacing:1.6px;color:var(--primary-strong)}
+.rd-dir__name{font-size:23px;font-weight:800;margin:8px 0 12px;letter-spacing:.3px}
+.rd-dir__desc{color:var(--text-muted);font-size:15px;margin:0 auto;max-width:560px;line-height:1.85}
+.rd-dir__tag{display:inline-block;margin-top:20px;font-size:12px;font-weight:800;color:var(--primary-strong);background:var(--primary-soft);padding:6px 16px;border-radius:999px}
+/* 里程碑：编号卡片 */
+.rd-cards{display:grid;gap:16px;margin:8px 0 0}
+.rd-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px 24px;box-shadow:0 2px 10px rgba(20,60,40,.05);overflow:hidden;transition:transform .18s ease,box-shadow .18s ease}
+.rd-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.rd-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--primary-soft)}
+.rd-card--latest::before{background:var(--primary)}
+.rd-card--latest{border-color:#a9dcc4;box-shadow:0 8px 24px rgba(31,175,119,.13)}
+.rd-card__no{position:absolute;right:18px;top:10px;font-size:44px;font-weight:900;line-height:1;color:var(--primary-soft);opacity:.75;user-select:none}
+.rd-card__head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;position:relative}
+.rd-card__date{font-size:12px;font-weight:800;color:var(--primary-strong);background:var(--surface-2);padding:4px 12px;border-radius:999px;font-variant-numeric:tabular-nums;letter-spacing:.3px}
+.rd-card__badge{font-size:11px;font-weight:800;color:#fff;background:var(--primary);padding:3px 10px;border-radius:999px}
+.rd-card__title{font-size:18px;font-weight:800;margin:0 0 6px;position:relative}
+.rd-card__desc{color:var(--text-muted);font-size:14px;margin:0;position:relative;max-width:88%}
+@media (max-width:640px){
+.rd-dir{padding:30px 22px 26px;border-radius:20px}
+.rd-dir__icon{width:62px;height:62px;font-size:27px;box-shadow:0 0 0 7px var(--primary-soft),inset 0 0 0 1px #e6f6ee}
+.rd-dir__name{font-size:19px}
+.rd-card{padding:18px 18px 18px 20px}
+.rd-card__no{font-size:34px;right:14px;top:8px}
+.rd-card__desc{max-width:100%}
+}
 </style>"""
 
 
@@ -706,14 +723,22 @@ def roadmap(site, content):
                 if len(parts3) >= 3:
                     ms.append((parts3[0], parts3[1], parts3[2]))
             ms.sort(key=lambda x: x[0], reverse=True)
-            items = "".join(
-                f'<div class="ms"><div class="ms__date">{d}</div><div class="ms__title">{t}</div><div class="ms__desc">{de}</div></div>'
-                for d, t, de in ms)
+            cards = []
+            for i, (d, t, de) in enumerate(ms, 1):
+                latest = i == 1
+                cards.append(f'''        <div class="rd-card{" rd-card--latest" if latest else ""}">
+          <span class="rd-card__no">{i:02d}</span>
+          <div class="rd-card__head"><span class="rd-card__date">{d.replace("-", ".")}</span>{'<span class="rd-card__badge">最新</span>' if latest else ''}</div>
+          <h3 class="rd-card__title">{t}</h3>
+          <p class="rd-card__desc">{de}</p>
+        </div>''')
             parts.append(f'''    <section>
       <div class="wrap">
         <h2 class="section__title">{sec["title"]}</h2>
         <p class="section__lead">{sec["lead"] or ""}</p>
-        <div class="timeline">{items}</div>
+        <div class="rd-cards">
+{chr(10).join(cards)}
+        </div>
       </div>
     </section>''')
         else:
@@ -722,7 +747,7 @@ def roadmap(site, content):
       <div class="wrap">
         <h2 class="section__title">{sec["title"]}</h2>
         <p class="section__lead">{sec["lead"] or ""}</p>
-        <div class="dir-grid">{dirs}</div>
+        <div class="rd-dirs">{dirs}</div>
       </div>
     </section>''')
     inner = f"""    <header class="hero">
