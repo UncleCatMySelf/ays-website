@@ -81,15 +81,18 @@ def load_site():
             continue
         if not s or section is None:
             continue
+        # 容错：Markdown 表格的分隔行（如 | --- | --- |）不是有效配置，直接跳过
+        if re.fullmatch(r"[\s\-:|]+", s):
+            continue
         if section == "导航":
-            parts = [p.strip() for p in s.split("|")]
-            if len(parts) >= 2:
+            parts = [p.strip().strip("<>") for p in s.split("|")]
+            if len(parts) >= 2 and parts[0]:
                 label, href = parts[0], parts[1]
                 external = len(parts) >= 3 and parts[2] == "external"
                 nav.append((label, href, external))
         elif section == "渠道":
-            parts = [p.strip() for p in s.split("|")]
-            if len(parts) >= 4:
+            parts = [p.strip().strip("<>") for p in s.split("|")]
+            if len(parts) >= 4 and parts[0] and parts[1]:
                 name, typ, value, logo = parts[0], parts[1], parts[2], parts[3]
                 if typ == "link":
                     channels.append((logo, name, value, logo, None))

@@ -1,5 +1,5 @@
 ---
-brand: AYS · Du株
+brand: AYS · 唤醒真我 | Du株
 kicker: AYS · 唤醒真我
 footer: © 2026 AYS · Du株 · 好好吃饭 · 内容仅供参考，不替代医疗诊断
 video_mode: link
