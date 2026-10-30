@@ -20,7 +20,6 @@ feedback_url: https://wj.qq.com/s2/28353037/n9yt/
 文章 | articles.html
 关于 | about.html
 规划 | roadmap.html
-YouTube | https://www.youtube.com/@DuZhu-AYS | external
 
 ## 渠道
 B站 | link | https://space.bilibili.com/3546711997811319 | bilibili

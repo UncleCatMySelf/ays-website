@@ -99,7 +99,7 @@ def load_site():
                 else:  # qr
                     channels.append((logo, name, None, logo, value))
     return {
-        "brand": fm.get("brand", "AYS · Du株"),
+        "brand": fm.get("brand", "AYS 唤醒真我 | Du株"),
         "kicker": fm.get("kicker", fm.get("brand", "AYS · Du株")),
         "footer": fm.get("footer", "© 2026 AYS · Du株 · 好好吃饭 · 内容仅供参考，不替代医疗诊断"),
         "youtube_embed": fm.get("youtube_embed", "https://www.youtube.com/embed?listType=search&list=DuZhu-AYS%20AYS%20营养"),
@@ -338,11 +338,8 @@ def follow_section(channels):
 def nav_html(site):
     links = []
     for label, href, external in site["nav"]:
-        cls = "nav__link"
-        if "youtube.com" in href:
-            cls += " nav__yt"
         tgt = ' target="_blank" rel="noopener"' if external else ""
-        links.append(f'    <a class="{cls}" href="{href}"{tgt}>{label}</a>')
+        links.append(f'    <a class="nav__link" href="{href}"{tgt}>{label}</a>')
     return f'''  <nav class="nav" id="nav">
     <a class="nav__brand" href="index.html">{html.escape(site["brand"])}</a>
     <button class="nav__toggle" aria-label="菜单" aria-expanded="false">☰</button>
@@ -488,7 +485,7 @@ def home(site, content, latest):
 
 {video_section(site)}
 {follow_section(site['channels'])}"""
-    return page(site, fm.get("title", "AYS · Du株 · 好好吃饭"), fm.get("desc", ""), inner, SITE + "/index.html", show_channels=False)
+    return page(site, fm.get("title", site["brand"]), fm.get("desc", ""), inner, SITE + "/index.html", show_channels=False)
 
 
 def list_page(posts):
@@ -501,7 +498,7 @@ def list_page(posts):
 {cards}
       </div>
     </main>"""
-    return page(SITE_CONFIG, "文章 · AYS · Du株", "Du株的全部营养科普文章列表。", inner, SITE + "/articles.html")
+    return page(SITE_CONFIG, f"文章 | {SITE_CONFIG['brand']}", "Du株的全部营养科普文章列表。", inner, SITE + "/articles.html")
 
 
 def article_page(p):
@@ -515,7 +512,7 @@ def article_page(p):
       {share_section(p)}
     </article>"""
     ogimg = SITE + "/" + p["cover"] if p["cover"] else ""
-    return page(SITE_CONFIG, p["title"] + " · AYS · Du株", p["summary"] or p["title"], inner, SITE + "/" + p["slug"] + ".html", ogimg)
+    return page(SITE_CONFIG, f"{p['title']} | {SITE_CONFIG['brand']}", p["summary"] or p["title"], inner, SITE + "/" + p["slug"] + ".html", ogimg)
 
 
 SPONSOR_MARK = "[[SPONSOR]]"
@@ -617,7 +614,7 @@ def letters_page(site, letters):
 {body}
       <p class="backlink"><a href="about.html">← 返回关于</a></p>
     </main>"""
-    return page(site, "主理人Du株 · 寄语 · AYS", "AYS 主理人 Du株 每年 11 月 1 日写给读者的一封信，按年份收录。", inner, SITE + "/letters.html")
+    return page(site, f"主理人寄语 | {site['brand']}", "AYS 主理人 Du株 每年 11 月 1 日写给读者的一封信，按年份收录。", inner, SITE + "/letters.html")
 
 
 def letter_page(site, it):
@@ -629,7 +626,7 @@ def letter_page(site, it):
       </div>
       <p class="backlink"><a href="letters.html">← 全部寄语</a></p>
     </main>"""
-    return page(site, it["title"] + " · AYS · Du株", it["summary"] or it["title"], inner, SITE + "/" + it["slug"] + ".html")
+    return page(site, f"{it['title']} | {site['brand']}", it["summary"] or it["title"], inner, SITE + "/" + it["slug"] + ".html")
 
 
 def render_about(site, content):
@@ -675,7 +672,7 @@ def render_about(site, content):
 {''.join(cards)}
     </main>
 {follow_section(site['channels'])}"""
-    return page(site, fm.get("title", "关于 Du株 · AYS"), fm.get("desc", ""), inner, SITE + "/about.html", show_channels=False)
+    return page(site, fm.get("title", f"关于 | {site['brand']}"), fm.get("desc", ""), inner, SITE + "/about.html", show_channels=False)
 
 
 ROADMAP_CSS = """<style>
@@ -756,7 +753,7 @@ def roadmap(site, content):
       <p class="hero__sub">{hero_sub}</p>
     </header>
 {''.join(parts)}"""
-    return page(site, fm.get("title", "里程碑 & 项目规划 · AYS · Du株"), fm.get("desc", ""), inner, SITE + "/roadmap.html", extra_head=ROADMAP_CSS)
+    return page(site, fm.get("title", f"里程碑 & 项目规划 | {site['brand']}"), fm.get("desc", ""), inner, SITE + "/roadmap.html", extra_head=ROADMAP_CSS)
 
 
 # ---------------- 入口 ----------------

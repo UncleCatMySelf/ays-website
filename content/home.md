@@ -1,5 +1,5 @@
 ---
-title: AYS 唤醒真我 | Du株
+title: AYS · 唤醒真我 | Du株
 desc: Du株的循证营养科普官网：怎么吃对、怎么瘦得稳、慢病饮食。配套 YouTube @DuZhu-AYS 视频。
 ---
 

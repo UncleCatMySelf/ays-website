@@ -84,11 +84,6 @@ img { max-width: 100%; height: auto; }
   color: var(--text-muted); font-weight: 600; font-size: 15px; padding: 6px 4px;
 }
 .nav__link:hover, .nav__link.is-active { color: var(--primary); text-decoration: none; }
-.nav__yt {
-  background: #ff0033; color: #fff !important; padding: 7px 14px;
-  border-radius: 999px; font-weight: 700; font-size: 14px;
-}
-.nav__yt:hover { opacity: .9; text-decoration: none; }
 
 /* ---------- 容器 ---------- */
 .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 22px; }

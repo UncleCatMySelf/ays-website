@@ -1,5 +1,5 @@
 ---
-title: 关于 AYS 唤醒真我 · 好好吃饭
+title: 关于 | AYS · 唤醒真我 | Du株
 desc: AYS 唤醒真我（Awaken YourSelf）——营养科普创作。好好吃饭，认真生活，帮助您的身体获得并保持「恢复力」！
 ---
 
