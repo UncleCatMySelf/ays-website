@@ -62,6 +62,8 @@ def parse_frontmatter(raw):
     m = re.match(r"^---\s*\n(.*?)\n---\s*\n(.*)$", raw, re.S)
     if m:
         for line in m.group(1).split("\n"):
+            if line.strip().startswith("|"):
+                continue  # 跳过编辑器自动格式化成表格时插入的空壳行
             if ":" in line:
                 k, v = line.split(":", 1)
                 fm[k.strip()] = v.strip()
@@ -118,6 +120,8 @@ def parse_blocks(raw):
     sections, cur = [], None
     for line in body.split("\n"):
         s = line.strip()
+        if s.startswith("|"):
+            continue  # 编辑器自动格式化的表格行，非内容
         if s.startswith("# "):
             hero_title = s[2:].strip()
         elif s.startswith("> "):
@@ -139,6 +143,8 @@ def parse_about_blocks(body):
     blocks, cur, buf = [], None, []
     for line in body.split("\n"):
         s = line.strip()
+        if s.startswith("|"):
+            continue  # 编辑器自动格式化的表格行，非内容
         if s.startswith("# "):
             h1 = s[2:].strip()
         elif s.startswith("> "):
@@ -804,8 +810,8 @@ def parse_service(raw):
     cur = None
     for line in body.split("\n"):
         s = line.strip()
-        if not s:
-            continue
+        if not s or s.startswith("|"):
+            continue  # 空行与编辑器自动格式化的表格行
         if s.startswith("# ") and not s.startswith("## "):
             h1 = s[2:].strip()
         elif s.startswith("## "):
