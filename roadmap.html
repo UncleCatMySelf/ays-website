@@ -37,7 +37,6 @@
 .rd-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--primary-soft)}
 .rd-card--latest::before{background:var(--primary)}
 .rd-card--latest{border-color:#a9dcc4;box-shadow:0 8px 24px rgba(31,175,119,.13)}
-.rd-card__no{position:absolute;right:18px;top:10px;font-size:44px;font-weight:900;line-height:1;color:var(--primary-soft);opacity:.75;user-select:none}
 .rd-card__head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;position:relative}
 .rd-card__date{font-size:12px;font-weight:800;color:var(--primary-strong);background:var(--surface-2);padding:4px 12px;border-radius:999px;font-variant-numeric:tabular-nums;letter-spacing:.3px}
 .rd-card__badge{font-size:11px;font-weight:800;color:#fff;background:var(--primary);padding:3px 10px;border-radius:999px}
@@ -48,7 +47,6 @@
 .rd-dir__icon{width:62px;height:62px;font-size:27px;box-shadow:0 0 0 7px var(--primary-soft),inset 0 0 0 1px #e6f6ee}
 .rd-dir__name{font-size:19px}
 .rd-card{padding:18px 18px 18px 20px}
-.rd-card__no{font-size:34px;right:14px;top:8px}
 .rd-card__desc{max-width:100%}
 }
 </style>
@@ -88,19 +86,21 @@
         <p class="section__lead">几个值得记住的节点。</p>
         <div class="rd-cards">
         <div class="rd-card rd-card--latest">
-          <span class="rd-card__no">01</span>
-          <div class="rd-card__head"><span class="rd-card__date">2026.10.21</span><span class="rd-card__badge">最新</span></div>
+          <div class="rd-card__head"><span class="rd-card__date">2026.10.28</span><span class="rd-card__badge">最新</span></div>
+          <h3 class="rd-card__title">小程序上线</h3>
+          <p class="rd-card__desc">「绿碗体测」v1.0.3 发布，微信里随手可用，不联网、不采集数据。</p>
+        </div>
+        <div class="rd-card">
+          <div class="rd-card__head"><span class="rd-card__date">2026.10.21</span></div>
           <h3 class="rd-card__title">官网正式上线</h3>
           <p class="rd-card__desc">对外窗口落成，六大平台渠道打通，第一次被人完整看见。</p>
         </div>
         <div class="rd-card">
-          <span class="rd-card__no">02</span>
           <div class="rd-card__head"><span class="rd-card__date">2026.10.20</span></div>
           <h3 class="rd-card__title">知识库奠基</h3>
           <p class="rd-card__desc">五维知识模型建成，沉淀逾 2000 份资料，长期主义的底盘。</p>
         </div>
         <div class="rd-card">
-          <span class="rd-card__no">03</span>
           <div class="rd-card__head"><span class="rd-card__date">2026.10.16</span></div>
           <h3 class="rd-card__title">项目正式启动</h3>
           <p class="rd-card__desc">品牌三层定位与全平台账号体系定稿——一切的起点。</p>

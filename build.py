@@ -692,7 +692,6 @@ ROADMAP_CSS = """<style>
 .rd-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--primary-soft)}
 .rd-card--latest::before{background:var(--primary)}
 .rd-card--latest{border-color:#a9dcc4;box-shadow:0 8px 24px rgba(31,175,119,.13)}
-.rd-card__no{position:absolute;right:18px;top:10px;font-size:44px;font-weight:900;line-height:1;color:var(--primary-soft);opacity:.75;user-select:none}
 .rd-card__head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;position:relative}
 .rd-card__date{font-size:12px;font-weight:800;color:var(--primary-strong);background:var(--surface-2);padding:4px 12px;border-radius:999px;font-variant-numeric:tabular-nums;letter-spacing:.3px}
 .rd-card__badge{font-size:11px;font-weight:800;color:#fff;background:var(--primary);padding:3px 10px;border-radius:999px}
@@ -703,7 +702,6 @@ ROADMAP_CSS = """<style>
 .rd-dir__icon{width:62px;height:62px;font-size:27px;box-shadow:0 0 0 7px var(--primary-soft),inset 0 0 0 1px #e6f6ee}
 .rd-dir__name{font-size:19px}
 .rd-card{padding:18px 18px 18px 20px}
-.rd-card__no{font-size:34px;right:14px;top:8px}
 .rd-card__desc{max-width:100%}
 }
 </style>"""
@@ -724,7 +722,6 @@ def roadmap(site, content):
             for i, (d, t, de) in enumerate(ms, 1):
                 latest = i == 1
                 cards.append(f'''        <div class="rd-card{" rd-card--latest" if latest else ""}">
-          <span class="rd-card__no">{i:02d}</span>
           <div class="rd-card__head"><span class="rd-card__date">{d.replace("-", ".")}</span>{'<span class="rd-card__badge">最新</span>' if latest else ''}</div>
           <h3 class="rd-card__title">{t}</h3>
           <p class="rd-card__desc">{de}</p>
