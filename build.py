@@ -757,6 +757,117 @@ def roadmap(site, content):
     return page(site, fm.get("title", f"里程碑 & 项目规划 | {site['brand']}"), fm.get("desc", ""), inner, SITE + "/roadmap.html", extra_head=ROADMAP_CSS)
 
 
+# ---------------- 服务页 ----------------
+# 2026-10-30 新增：展示小程序等服务入口。内容全部来自 content/service.md。
+SERVICE_CSS = """<style>
+/* 服务页（2026-10-30 v1.0：左右分栏服务卡） */
+.svc{display:grid;grid-template-columns:296px 1fr;gap:48px;align-items:center;
+  background:var(--surface);border-radius:24px;padding:46px 48px;
+  box-shadow:0 2px 16px rgba(20,60,40,.05)}
+.svc + .svc{margin-top:24px}
+.svc__qr{text-align:center}
+.svc__qr img{width:220px;height:220px;display:block;margin:0 auto;border-radius:18px}
+.svc__scan{display:inline-block;margin-top:16px;font-size:13px;font-weight:700;
+  color:var(--primary-strong);letter-spacing:.5px}
+.svc__chip{display:inline-block;font-size:12px;font-weight:800;letter-spacing:1.4px;
+  color:var(--primary-strong);background:var(--primary-soft);padding:5px 12px;border-radius:999px}
+.svc__name{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.15;margin:14px 0 12px}
+.svc__desc{color:var(--text-muted);font-size:16px;line-height:1.7;margin:0 0 22px;max-width:440px}
+.svc__list{list-style:none;padding:0;margin:0 0 26px;display:grid;gap:10px}
+.svc__list li{position:relative;padding-left:24px;font-size:15px;color:var(--text);line-height:1.6}
+.svc__list li::before{content:"";position:absolute;left:6px;top:9px;width:6px;height:6px;
+  border-radius:50%;background:var(--primary)}
+.svc__note{font-size:13px;color:var(--text-muted);margin:0;padding-top:18px;border-top:1px solid #eef6f1}
+.svc-more{margin-top:40px;font-size:14px;color:var(--text-muted)}
+.section__lead{max-width:660px}
+@media (max-width:820px){
+  .svc{grid-template-columns:1fr;gap:28px;padding:34px 26px;text-align:center}
+  .svc__desc{margin-left:auto;margin-right:auto}
+  .svc__list{text-align:left;max-width:320px;margin-left:auto;margin-right:auto}
+  .svc__name{font-size:26px}
+}
+</style>"""
+
+# 服务卡内的字段名（其余 `- ` 项按「特点」渲染成列表）
+SERVICE_FIELDS = ("标签", "二维码", "扫码提示", "介绍", "备注")
+
+
+def parse_service(raw):
+    """解析 content/service.md：
+    `# ` → 页面大标题；第一个 `> ` → 引导语；每个 `## ` → 一张服务卡；
+    卡内 `- 字段：值`（标签/二维码/扫码提示/介绍/备注）为配置，其余 `- ` 项为特点；
+    所有卡片之后的 `> ` → 页尾一句话。
+    """
+    fm, body = parse_frontmatter(raw)
+    h1, lead, tail = "", "", ""
+    cards = []
+    cur = None
+    for line in body.split("\n"):
+        s = line.strip()
+        if not s:
+            continue
+        if s.startswith("# ") and not s.startswith("## "):
+            h1 = s[2:].strip()
+        elif s.startswith("## "):
+            cur = {"title": s[3:].strip(), "chip": "", "qr": "", "scan": "微信扫一扫",
+                   "desc": "", "note": "", "points": []}
+            cards.append(cur)
+        elif s.startswith("> "):
+            text = s[2:].strip()
+            if cur is None:
+                lead = text
+            else:
+                tail = text
+        elif re.match(r"^[-*] ", s):
+            item = s[2:].strip()
+            m = re.match(r"^([^：:]{1,8})[：:]\s*(.+)$", item)
+            if cur is not None and m and m.group(1).strip() in SERVICE_FIELDS:
+                k, v = m.group(1).strip(), m.group(2).strip()
+                key = {"标签": "chip", "二维码": "qr", "扫码提示": "scan",
+                       "介绍": "desc", "备注": "note"}[k]
+                cur[key] = v
+            elif cur is not None:
+                cur["points"].append(item)
+    return fm, h1, lead, cards, tail
+
+
+def service_card_html(c):
+    chip = f'<span class="svc__chip">{inline(c["chip"])}</span>' if c["chip"] else ""
+    qr = ""
+    if c["qr"]:
+        qr = (f'      <div class="svc__qr">\n'
+              f'        <img src="{c["qr"]}" alt="{html.escape(c["title"])} 微信小程序码" width="220" height="220" loading="lazy" />\n'
+              f'        <span class="svc__scan">{inline(c["scan"])}</span>\n'
+              f'      </div>')
+    points = ""
+    if c["points"]:
+        lis = "".join(f"          <li>{inline(p)}</li>\n" for p in c["points"])
+        points = f'        <ul class="svc__list">\n{lis}        </ul>\n'
+    note = f'        <p class="svc__note">{inline(c["note"])}</p>' if c["note"] else ""
+    desc = f'        <p class="svc__desc">{inline(c["desc"])}</p>\n' if c["desc"] else ""
+    return f'''    <div class="svc">
+{qr}
+      <div class="svc__body">
+        {chip}
+        <h2 class="svc__name">{inline(c["title"])}</h2>
+{desc}{points}{note}
+      </div>
+    </div>'''
+
+
+def service_page(site, raw):
+    fm, h1, lead, cards, tail = parse_service(raw)
+    body = "\n".join(service_card_html(c) for c in cards)
+    tail_html = f'      <p class="svc-more">{inline(tail)}</p>\n' if tail else ""
+    inner = f"""    <main class="wrap section">
+      <h1 class="section__title">{inline(h1 or "服务")}</h1>
+      <p class="section__lead">{inline(lead)}</p>
+{body}
+{tail_html}    </main>"""
+    return page(site, fm.get("title", f"服务 | {site['brand']}"), fm.get("desc", ""),
+                inner, SITE + "/service.html", extra_head=SERVICE_CSS)
+
+
 # ---------------- 入口 ----------------
 SITE_CONFIG = None
 
@@ -802,6 +913,8 @@ def main():
         f.write(render_about(SITE_CONFIG, read_md(os.path.join(CONTENT_DIR, "about.md"))))
     with open(os.path.join(ROOT, "roadmap.html"), "w", encoding="utf-8") as f:
         f.write(roadmap(SITE_CONFIG, read_md(os.path.join(CONTENT_DIR, "roadmap.md"))))
+    with open(os.path.join(ROOT, "service.html"), "w", encoding="utf-8") as f:
+        f.write(service_page(SITE_CONFIG, read_md(os.path.join(CONTENT_DIR, "service.md"))))
 
     letters = load_letters()
     with open(os.path.join(ROOT, "letters.html"), "w", encoding="utf-8") as f:
@@ -812,7 +925,7 @@ def main():
 
     # sitemap
     urls = [SITE + "/index.html", SITE + "/about.html", SITE + "/articles.html",
-            SITE + "/roadmap.html", SITE + "/letters.html"]
+            SITE + "/service.html", SITE + "/roadmap.html", SITE + "/letters.html"]
     urls += [SITE + "/" + p["slug"] + ".html" for p in posts]
     urls += [SITE + "/" + it["slug"] + ".html" for it in letters]
     sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'

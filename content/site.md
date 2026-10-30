@@ -18,6 +18,7 @@ feedback_url: https://wj.qq.com/s2/28353037/n9yt/
 ## 导航
 首页 | index.html
 文章 | articles.html
+服务 | service.html
 关于 | about.html
 规划 | roadmap.html
 
