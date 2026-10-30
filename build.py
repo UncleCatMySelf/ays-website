@@ -677,8 +677,10 @@ def render_about(site, content):
 
 ROADMAP_CSS = """<style>
 /* 规划页专属样式（2026-10-29 v1.1 B 版：宣言卡 + 编号卡片） */
+/* 标题行高收紧密，让区块上下留白视觉对称 */
+.rd-sec-title{line-height:1.25}
 /* 项目方向：居中宣言卡 */
-.rd-dirs{display:grid;gap:18px;margin:8px 0 0}
+.rd-dirs{display:grid;gap:18px;margin:20px 0 0}
 .rd-dir{background:radial-gradient(130% 150% at 50% 0%,#f4fcf8 0%,#fff 58%);border:1px solid var(--border);border-radius:26px;box-shadow:var(--shadow);padding:40px 34px 34px;text-align:center}
 .rd-dir__icon{width:74px;height:74px;margin:0 auto 18px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:32px;box-shadow:0 0 0 9px var(--primary-soft),inset 0 0 0 1px #e6f6ee}
 .rd-dir__eyebrow{font-size:12px;font-weight:800;letter-spacing:1.6px;color:var(--primary-strong)}
@@ -686,7 +688,7 @@ ROADMAP_CSS = """<style>
 .rd-dir__desc{color:var(--text-muted);font-size:15px;margin:0 auto;max-width:560px;line-height:1.85}
 .rd-dir__tag{display:inline-block;margin-top:20px;font-size:12px;font-weight:800;color:var(--primary-strong);background:var(--primary-soft);padding:6px 16px;border-radius:999px}
 /* 里程碑：编号卡片 */
-.rd-cards{display:grid;gap:16px;margin:8px 0 0}
+.rd-cards{display:grid;gap:16px;margin:20px 0 0}
 .rd-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px 24px;box-shadow:0 2px 10px rgba(20,60,40,.05);overflow:hidden;transition:transform .18s ease,box-shadow .18s ease}
 .rd-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
 .rd-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--primary-soft)}
@@ -711,6 +713,8 @@ def roadmap(site, content):
     fm, hero_title, hero_sub, sections = parse_blocks(content)
     parts = []
     for sec in sections:
+        # 无引导语的小节不渲染空 <p>（否则会白占 36px 下边距，把标题与内容顶开）
+        lead_html = f'<p class="section__lead">{sec["lead"]}</p>' if sec["lead"] else ""
         if "里程碑" in sec["title"]:
             ms = []
             for it in sec["items"]:
@@ -728,8 +732,8 @@ def roadmap(site, content):
         </div>''')
             parts.append(f'''    <section>
       <div class="wrap">
-        <h2 class="section__title">{sec["title"]}</h2>
-        <p class="section__lead">{sec["lead"] or ""}</p>
+        <h2 class="section__title rd-sec-title">{sec["title"]}</h2>
+        {lead_html}
         <div class="rd-cards">
 {chr(10).join(cards)}
         </div>
@@ -737,10 +741,10 @@ def roadmap(site, content):
     </section>''')
         else:
             dirs = "".join(dir_html(*split_icon_title(it)) for it in sec["items"])
-            parts.append(f'''    <section class="section--soft">
+            parts.append(f'''    <section class="section section--soft">
       <div class="wrap">
-        <h2 class="section__title">{sec["title"]}</h2>
-        <p class="section__lead">{sec["lead"] or ""}</p>
+        <h2 class="section__title rd-sec-title">{sec["title"]}</h2>
+        {lead_html}
         <div class="rd-dirs">{dirs}</div>
       </div>
     </section>''')
