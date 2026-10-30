@@ -681,23 +681,23 @@ ROADMAP_CSS = """<style>
 .rd-sec-title{line-height:1.25}
 /* 项目方向：居中宣言卡 */
 .rd-dirs{display:grid;gap:18px;margin:20px 0 0}
-.rd-dir{background:radial-gradient(130% 150% at 50% 0%,#f4fcf8 0%,#fff 58%);border:1px solid var(--border);border-radius:26px;box-shadow:var(--shadow);padding:40px 34px 34px;text-align:center}
+.rd-dir{background:linear-gradient(180deg,#f2fbf6 0%,#fbfefc 100%);border:1px solid #d9ece2;border-radius:26px;padding:40px 34px 34px;text-align:center}
 .rd-dir__icon{width:74px;height:74px;margin:0 auto 18px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:32px;box-shadow:0 0 0 9px var(--primary-soft),inset 0 0 0 1px #e6f6ee}
 .rd-dir__eyebrow{font-size:12px;font-weight:800;letter-spacing:1.6px;color:var(--primary-strong)}
-.rd-dir__name{font-size:23px;font-weight:800;margin:8px 0 12px;letter-spacing:.3px}
-.rd-dir__desc{color:var(--text-muted);font-size:15px;margin:0 auto;max-width:560px;line-height:1.85}
+.rd-dir__name{font-size:23px;font-weight:700;letter-spacing:-.01em;margin:8px 0 12px}
+.rd-dir__desc{color:var(--text-muted);font-size:15px;margin:0 auto;max-width:560px;line-height:1.7}
 .rd-dir__tag{display:inline-block;margin-top:20px;font-size:12px;font-weight:800;color:var(--primary-strong);background:var(--primary-soft);padding:6px 16px;border-radius:999px}
 /* 里程碑：编号卡片 */
 .rd-cards{display:grid;gap:16px;margin:20px 0 0}
-.rd-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px 24px;box-shadow:0 2px 10px rgba(20,60,40,.05);overflow:hidden;transition:transform .18s ease,box-shadow .18s ease}
-.rd-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.rd-card{position:relative;background:var(--surface);border-radius:20px;padding:24px 26px;overflow:hidden;transition:background-color .2s ease}
+.rd-card:hover{background:#fbfefc}
 .rd-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--primary-soft)}
 .rd-card--latest::before{background:var(--primary)}
-.rd-card--latest{border-color:#a9dcc4;box-shadow:0 8px 24px rgba(31,175,119,.13)}
+.rd-card--latest{box-shadow:inset 0 0 0 1.5px #a9dcc4}
 .rd-card__head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;position:relative}
 .rd-card__date{font-size:12px;font-weight:800;color:var(--primary-strong);background:var(--surface-2);padding:4px 12px;border-radius:999px;font-variant-numeric:tabular-nums;letter-spacing:.3px}
 .rd-card__badge{font-size:11px;font-weight:800;color:#fff;background:var(--primary);padding:3px 10px;border-radius:999px}
-.rd-card__title{font-size:18px;font-weight:800;margin:0 0 6px;position:relative}
+.rd-card__title{font-size:18px;font-weight:700;letter-spacing:-.01em;margin:0 0 6px;position:relative}
 .rd-card__desc{color:var(--text-muted);font-size:14px;margin:0;position:relative;max-width:88%}
 @media (max-width:640px){
 .rd-dir{padding:30px 22px 26px;border-radius:20px}
