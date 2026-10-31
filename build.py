@@ -50,6 +50,29 @@ LOGOS = {
 
 FAVICON = "assets/logo/logo-tile.svg"
 
+# ---------------- 安全：内容安全策略 CSP（2026-10-31 加固） ----------------
+# GitHub Pages 不允许自定义响应头，所以用 <meta http-equiv> 下发。
+# 本站零第三方资源（无 CDN、无统计脚本、无外部字体），因此可以收得非常紧：
+#   default-src 'none'    默认什么都不加载，再逐个开白
+#   script-src  'self'    只允许本站 assets/script.js —— 禁止内联脚本、禁止 eval
+#   style-src   'self'    只允许本站样式文件 —— 内联 style 已全部外置为类名
+#   img-src     'self' data:   只允许本站图片
+#   connect-src 'none'    脚本不许发任何网络请求（本站本来就不发）
+#   form-action 'none'    不许提交表单（本站没有表单）
+#   base-uri    'none'    防止 <base> 标签劫持站内相对链接
+#   frame-src   ...       预留 B站/YouTube 播放器（video_mode 改内嵌时才会用到）
+# 已知限制：frame-ancestors（防点击劫持）写在 meta 里浏览器会忽略，只能靠响应头，
+#           GitHub Pages 不提供。本站无登录、无表单、无敏感操作，实际风险接近于零。
+CONTENT_SECURITY_POLICY = '''  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'; frame-src https://player.bilibili.com https://www.youtube.com https://www.youtube-nocookie.com; manifest-src 'self'; upgrade-insecure-requests" />
+'''
+
+# 页面级样式外置（2026-10-31）：CSP 的 style-src 'self' 不允许页面内出现 <style> 块，
+# 所以构建时把 ROADMAP_CSS / SERVICE_CSS 写成独立 .css 文件，页面只留一个 <link>。
+PAGE_CSS = {
+    "roadmap": '<link rel="stylesheet" href="assets/roadmap.css" />',
+    "service": '<link rel="stylesheet" href="assets/service.css" />',
+}
+
 
 # ---------------- 读取与解析 ----------------
 def read_md(path):
@@ -166,11 +189,74 @@ def parse_about_blocks(body):
     return h1, lead, blocks
 
 
+# ---------------- 安全：URL 协议白名单（2026-10-31 加固） ----------------
+# 只放行这几类协议；javascript: / data: / vbscript: / file: 等一律拒绝。
+# 目的：markdown 里的链接和图片地址、site.md 里的渠道地址，都先过这一关，
+# 避免有人在正文里写 [点我](javascript:...) 这类可执行链接（XSS）。
+SAFE_URL_SCHEMES = ("http://", "https://", "mailto:", "tel:")
+# 站内相对路径：以这些开头，或首段不含冒号（如 assets/qr/x.png、kai-pian.html）
+SAFE_REL_PREFIXES = ("#", "/", "./", "../", "?")
+
+
+def safe_url(u):
+    """校验 URL 是否安全。返回 (是否通过, 去掉首尾空格的原值)。
+
+    注意：只做校验、不做 HTML 转义，转义由调用方按上下文负责，
+    否则已转义文本会被二次转义（&amp; → &amp;amp;）。
+
+    绕过防护的三个常见点都已处理：
+      1. 前导控制字符（\\t \\n \\r \\x00）  浏览器会忽略，正则必须也忽略
+      2. 大小写混写（JaVaScRiPt:）
+      3. 实体编码（&#106;avascript:）—— 正文先转义再解析，此类会变成纯文本，天然无害
+    """
+    raw = (u or "").strip()
+    if not raw:
+        return False, ""
+    probe = re.sub(r"[\x00-\x20\x7f]", "", raw).lower()
+    if not probe:
+        return False, ""
+    if any(probe.startswith(s) for s in SAFE_URL_SCHEMES):
+        return True, raw
+    # 相对路径：首段（第一个 / 之前）不含冒号
+    if probe.startswith(SAFE_REL_PREFIXES) or ":" not in probe.split("/", 1)[0]:
+        return True, raw
+    return False, ""
+
+
+def _md_img(m):
+    """markdown 图片 -> <img>，src 过协议白名单；不通过则原样输出（显示为文字）。"""
+    ok, src = safe_url(m.group(2))
+    if not ok:
+        return m.group(0)
+    return '<img src="%s" alt="%s" />' % (src, m.group(1))
+
+
+def _md_link(m):
+    """markdown 链接 -> <a>，href 过协议白名单；外链自动加 target/rel。"""
+    ok, href = safe_url(m.group(2))
+    if not ok:
+        return m.group(0)
+    ext = ""
+    if href.lower().startswith(("http://", "https://")):
+        ext = ' target="_blank" rel="noopener noreferrer"'
+    return '<a href="%s"%s>%s</a>' % (href, ext, m.group(1))
+
+
+# 文件名白名单：中英文、数字、连字符、下划线；不允许 / \ . : 空格 等
+# 作用：slug 会直接拼成输出文件名（os.path.join(ROOT, slug + ".html")），
+#       若不校验，一个名为 ..\\..\\x.md 的文件就能写到站外去（构建期路径穿越）。
+SLUG_RE = re.compile(r"^[A-Za-z0-9\u4e00-\u9fa5][A-Za-z0-9\u4e00-\u9fa5_\-]*$")
+
+
+def safe_slug(name):
+    return bool(SLUG_RE.match(str(name or "")))
+
+
 # ---------------- Markdown 轻量解析 ----------------
 def inline(t):
     t = html.escape(t)
-    t = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", r'<img src="\2" alt="\1" />', t)
-    t = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2">\1</a>', t)
+    t = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", _md_img, t)
+    t = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", _md_link, t)
     t = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", t)
     t = re.sub(r"\*(.+?)\*", r"<em>\1</em>", t)
     t = re.sub(r"`([^`]+)`", r"<code>\1</code>", t)
@@ -298,9 +384,9 @@ def share_section(p):
     tw = f"https://twitter.com/intent/tweet?url={url}&text={t}"
     qq = f"https://connect.qq.com/widget/shareqq/index.html?url={url}&title={t}"
     return f"""    <div class="share">
-      <a href="{wb}" target="_blank" rel="noopener">微博</a>
-      <a href="{tw}" target="_blank" rel="noopener">X / Twitter</a>
-      <a href="{qq}" target="_blank" rel="noopener">QQ</a>
+      <a href="{wb}" target="_blank" rel="noopener noreferrer">微博</a>
+      <a href="{tw}" target="_blank" rel="noopener noreferrer">X / Twitter</a>
+      <a href="{qq}" target="_blank" rel="noopener noreferrer">QQ</a>
       <a href="#" class="copy-link" data-url="{url}">复制链接</a>
     </div>"""
 
@@ -309,6 +395,17 @@ def channels_html(channels, mini=False):
     out = []
     for key, name, url, logo, qr in channels:
         badge = LOGOS.get(logo, "")
+        # 安全（2026-10-31）：名称转义防止属性逃逸；链接/图片地址过协议白名单
+        name = html.escape(str(name or ""), quote=True)
+        if qr:
+            ok, qr = safe_url(qr)
+            if not ok:
+                continue  # 不安全的二维码路径：跳过该渠道，不影响其它渠道
+        else:
+            ok, url = safe_url(url)
+            if not ok:
+                continue
+            url = html.escape(url, quote=True)
         if qr:
             out.append(
                 f'''      <span class="channel channel--qr" tabindex="0" data-name="{name}" role="button" aria-label="{name} 扫码关注">
@@ -321,7 +418,7 @@ def channels_html(channels, mini=False):
       </span>''')
         else:
             out.append(
-                f'''      <a class="channel" href="{url}" target="_blank" rel="noopener" data-name="{name}" aria-label="{name} 频道">
+                f'''      <a class="channel" href="{url}" target="_blank" rel="noopener noreferrer" data-name="{name}" aria-label="{name} 频道">
         <span class="channel__badge">{badge}</span>
         <span class="channel__name">{name}</span>
         <span class="channel__card">
@@ -335,7 +432,7 @@ def channels_html(channels, mini=False):
 
 
 def follow_section(channels):
-    return """    <section class="section wrap" style="text-align:center;">
+    return """    <section class="section wrap u-center">
       <h2 class="section__title">欢迎关注 · 全平台</h2>
 """ + channels_html(channels) + """
     </section>"""
@@ -344,8 +441,11 @@ def follow_section(channels):
 def nav_html(site):
     links = []
     for label, href, external in site["nav"]:
-        tgt = ' target="_blank" rel="noopener"' if external else ""
-        links.append(f'    <a class="nav__link" href="{href}"{tgt}>{label}</a>')
+        ok, href = safe_url(href)
+        if not ok:
+            continue  # 不安全的导航地址直接丢弃，不生成坏链接
+        tgt = ' target="_blank" rel="noopener noreferrer"' if external else ""
+        links.append(f'    <a class="nav__link" href="{html.escape(href, quote=True)}"{tgt}>{label}</a>')
     return f'''  <nav class="nav" id="nav">
     <a class="nav__brand" href="index.html">{html.escape(site["brand"])}</a>
     <button class="nav__toggle" aria-label="菜单" aria-expanded="false">☰</button>
@@ -357,12 +457,14 @@ def nav_html(site):
 
 
 def feedback_fab(site):
-    """全站右下角悬浮反馈按钮：仅在 feedback_url 为有效 http(s) 链接时显示。
-    胶囊形态（图标 + 反馈文字），点击在新标签打开腾讯问卷。"""
-    url = (site.get("feedback_url") or "").strip()
-    if not (url.startswith("http://") or url.startswith("https://")):
+    """全站右下角悬浮反馈按钮：仅在 feedback_url 为安全的 http(s) 链接时显示。
+    胶囊形态（图标 + 反馈文字），点击在新标签打开腾讯问卷。
+    安全（2026-10-31）：改为走 safe_url 白名单，并转义后输出。"""
+    ok, url = safe_url(site.get("feedback_url") or "")
+    if not ok or not url.lower().startswith(("http://", "https://")):
         return ""
-    return f'''  <a class="feedback-fab" href="{url}" target="_blank" rel="noopener" aria-label="填写意见反馈">
+    url = html.escape(url, quote=True)
+    return f'''  <a class="feedback-fab" href="{url}" target="_blank" rel="noopener noreferrer" aria-label="填写意见反馈">
     <span class="feedback-fab__icon" aria-hidden="true">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5z"/></svg>
     </span>
@@ -386,6 +488,7 @@ def page(site, title, desc, inner, url, ogimg="", extra_head="", show_channels=T
   <!-- 本文件由 build.py 自动生成（生成日期随每次构建刷新），请勿手动修改；改文案见 content/*.md，改样式见 assets/style.css -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{CONTENT_SECURITY_POLICY}  <meta name="referrer" content="strict-origin-when-cross-origin" />
   <title>{title}</title>
   <meta name="description" content="{desc}" />
   <link rel="icon" href="{FAVICON}" type="image/svg+xml" />
@@ -425,7 +528,7 @@ def video_section(site):
         return f'''    <section class="section section--soft">
       <div class="wrap">
         <h2 class="section__title">在视频平台看 Du株</h2>
-        <div class="yt" style="max-width:820px;margin:0 auto;">
+        <div class="yt yt--box">
           <iframe src="{src}" title="Du株 视频" allowfullscreen></iframe>
         </div>
         <p class="yt__note">订阅频道不错过更新。</p>
@@ -440,9 +543,9 @@ def video_section(site):
             yt = url
     btns = ""
     if bili:
-        btns += f'<a class="yt-link__btn" href="{bili}" target="_blank" rel="noopener">▷ 在 Bilibili 看</a>'
+        btns += f'<a class="yt-link__btn" href="{bili}" target="_blank" rel="noopener noreferrer">▷ 在 Bilibili 看</a>'
     if yt:
-        btns += f'<a class="yt-link__btn" href="{yt}" target="_blank" rel="noopener">在 YouTube 看</a>'
+        btns += f'<a class="yt-link__btn" href="{yt}" target="_blank" rel="noopener noreferrer">在 YouTube 看</a>'
     return f'''    <section class="section section--soft">
       <div class="wrap">
         <h2 class="section__title">在视频平台看 Du株</h2>
@@ -468,7 +571,7 @@ def home(site, content, latest):
 {cards}
       </div>
     </section>''')
-    cards_latest = "\n".join(post_card(p) for p in latest) or '      <p>文章即将上线，先去 <a href="https://www.youtube.com/@DuZhu-AYS" target="_blank" rel="noopener">YouTube @DuZhu-AYS</a> 看视频吧。</p>'
+    cards_latest = "\n".join(post_card(p) for p in latest) or '      <p>文章即将上线，先去 <a href="https://www.youtube.com/@DuZhu-AYS" target="_blank" rel="noopener noreferrer">YouTube @DuZhu-AYS</a> 看视频吧。</p>'
     inner = f"""
     <section class="hero">
       <span class="hero__kicker">{html.escape(site["kicker"])}</span>
@@ -476,7 +579,7 @@ def home(site, content, latest):
       <p class="hero__sub">{hero_sub}</p>
       <div class="btn-row">
         <a class="btn btn--primary" href="articles.html">读最新文章</a>
-        <a class="btn btn--ghost" href="https://www.youtube.com/@DuZhu-AYS" target="_blank" rel="noopener">▷ 看 YouTube 频道</a>
+        <a class="btn btn--ghost" href="https://www.youtube.com/@DuZhu-AYS" target="_blank" rel="noopener noreferrer">▷ 看 YouTube 频道</a>
       </div>
     </section>
 {''.join(sec_html)}
@@ -486,7 +589,7 @@ def home(site, content, latest):
       <div class="grid">
 {cards_latest}
       </div>
-      <div style="text-align:center;margin-top:30px;"><a class="btn btn--ghost" href="articles.html">查看全部文章 →</a></div>
+      <div class="u-center u-mt30"><a class="btn btn--ghost" href="articles.html">查看全部文章 →</a></div>
     </section>
 
 {video_section(site)}
@@ -570,6 +673,12 @@ def load_letters():
             continue
         fm, body = parse_frontmatter(read_md(path))
         year = fm.get("year") or os.path.splitext(os.path.basename(path))[0]
+        year = str(year).strip()
+        # 安全（2026-10-31）：年份会拼进输出文件名 letter-<year>.html，
+        # 必须限定四位数字，否则 "year: ../../x" 之类会写到站外
+        if not re.fullmatch(r"\d{4}", year):
+            print("[跳过] 寄语年份不合法（需四位数字）：", path)
+            continue
         items.append(dict(
             year=str(year),
             slug="letter-" + str(year),
@@ -658,7 +767,7 @@ def render_about(site, content):
             raw = raw.replace(SPONSOR_MARK, "")
         text = md_to_html(raw.strip())
         if media:
-            cards.append(f'''    <div class="card card--person" style="margin-bottom:22px;">
+            cards.append(f'''    <div class="card card--person u-mb22">
       <div class="person__row">
         {media}
         <div class="person__body">
@@ -668,7 +777,7 @@ def render_about(site, content):
       </div>{extra}
     </div>''')
         else:
-            cards.append(f'''    <div class="card" style="margin-bottom:22px;">
+            cards.append(f'''    <div class="card u-mb22">
       <div class="card__title">{b["title"]}</div>
       <div class="card__text">{text}</div>{extra}
     </div>''')
@@ -760,7 +869,7 @@ def roadmap(site, content):
       <p class="hero__sub">{hero_sub}</p>
     </header>
 {''.join(parts)}"""
-    return page(site, fm.get("title", f"里程碑 & 项目规划 | {site['brand']}"), fm.get("desc", ""), inner, SITE + "/roadmap.html", extra_head=ROADMAP_CSS)
+    return page(site, fm.get("title", f"里程碑 & 项目规划 | {site['brand']}"), fm.get("desc", ""), inner, SITE + "/roadmap.html", extra_head=PAGE_CSS["roadmap"])
 
 
 # ---------------- 服务页 ----------------
@@ -871,7 +980,7 @@ def service_page(site, raw):
 {body}
 {tail_html}    </main>"""
     return page(site, fm.get("title", f"服务 | {site['brand']}"), fm.get("desc", ""),
-                inner, SITE + "/service.html", extra_head=SERVICE_CSS)
+                inner, SITE + "/service.html", extra_head=PAGE_CSS["service"])
 
 
 # ---------------- 入口 ----------------
@@ -882,6 +991,9 @@ def parse_post(path):
     raw = read_md(path)
     fm, body = parse_frontmatter(raw)
     slug = os.path.splitext(os.path.basename(path))[0]
+    if not safe_slug(slug):
+        print("[跳过] 文件名含不安全字符，未生成页面：", path)
+        return None
     return dict(
         slug=slug,
         title=fm.get("title", slug),
@@ -900,12 +1012,24 @@ def pdate(p):
         return datetime.datetime(1970, 1, 1)
 
 
+def write_page_css():
+    """把页面级样式写成 assets/roadmap.css、assets/service.css（配合 CSP: style-src 'self'）。
+    源仍是 build.py 里的 ROADMAP_CSS / SERVICE_CSS，改样式只改那里。"""
+    for name, block in (("roadmap", ROADMAP_CSS), ("service", SERVICE_CSS)):
+        css = block.replace("<style>", "").replace("</style>", "").strip()
+        path = os.path.join(ROOT, "assets", name + ".css")
+        with open(path, "w", encoding="utf-8", newline="") as f:
+            f.write("/* 本文件由 build.py 自动生成，请勿手改；改样式请改 build.py 的 %s */\n" % name.upper())
+            f.write(css + "\n")
+
+
 def main():
     global SITE_CONFIG
     os.makedirs(POSTS_DIR, exist_ok=True)
     SITE_CONFIG = load_site()
+    write_page_css()
 
-    posts = [parse_post(p) for p in glob.glob(os.path.join(POSTS_DIR, "*.md"))]
+    posts = [p for p in (parse_post(x) for x in glob.glob(os.path.join(POSTS_DIR, "*.md"))) if p]
     posts.sort(key=pdate, reverse=True)
 
     with open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8") as f:

@@ -3,8 +3,8 @@
  * 项目：AYS · Du株 · 好好吃饭 官网（前端交互）
  * 作者：神启（AI 助手，代主理人 Du株 维护）
  * 创建日期：2026-10-21（官网 v1）
- * 最近维护：2026-10-27
- * 版本：v1.0.0（首次合规归档）
+ * 最近维护：2026-10-31（安全加固）
+ * 版本：v1.1.0（安全加固版：复制链接兜底跳转前增加协议白名单校验）
  * 用途：官网前端交互脚本（原生 JS，无框架、无第三方库）
  * 主要作用：
  *   - 导航汉堡菜单（≤768px 折叠 / 点链接收起 / 点外部关闭）
@@ -56,7 +56,11 @@
     var cl = e.target && e.target.closest(".copy-link");
     if (cl) {
       e.preventDefault();
-      var u = cl.getAttribute("data-url");
+      var u = cl.getAttribute("data-url") || "";
+      // 安全（2026-10-31）：兜底跳转前先校验协议，只允许 http(s) 与站内相对路径。
+      // 防止 data-url 被改成 javascript:/data: 时被 location.href 直接执行。
+      var safe = /^(https?:|mailto:|\/|\.\/|\.\.\/|#)/i.test(u.replace(/[\x00-\x20]/g, ""));
+      if (!safe) return;
       var done = function () {
         var old = cl.textContent;
         cl.textContent = "已复制 ✓";

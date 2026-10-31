@@ -4,6 +4,8 @@
   <!-- 本文件由 build.py 自动生成（生成日期随每次构建刷新），请勿手动修改；改文案见 content/*.md，改样式见 assets/style.css -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'; frame-src https://player.bilibili.com https://www.youtube.com https://www.youtube-nocookie.com; manifest-src 'self'; upgrade-insecure-requests" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
   <title>规划 | AYS · 唤醒真我 | Du株</title>
   <meta name="description" content="AYS·Du株的项目里程碑与长期方向：循证营养科普品牌的成长节点与规划。" />
   <link rel="icon" href="assets/logo/logo-tile.svg" type="image/svg+xml" />
@@ -20,38 +22,7 @@
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="stylesheet" href="assets/style.css" />
-  <style>
-/* 规划页专属样式（2026-10-29 v1.1 B 版：宣言卡 + 编号卡片） */
-/* 标题行高收紧密，让区块上下留白视觉对称 */
-.rd-sec-title{line-height:1.25}
-/* 项目方向：居中宣言卡 */
-.rd-dirs{display:grid;gap:18px;margin:20px 0 0}
-.rd-dir{background:linear-gradient(180deg,#f2fbf6 0%,#fbfefc 100%);border:1px solid #d9ece2;border-radius:26px;padding:40px 34px 34px;text-align:center}
-.rd-dir__icon{width:74px;height:74px;margin:0 auto 18px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:32px;box-shadow:0 0 0 9px var(--primary-soft),inset 0 0 0 1px #e6f6ee}
-.rd-dir__eyebrow{font-size:12px;font-weight:800;letter-spacing:1.6px;color:var(--primary-strong)}
-.rd-dir__name{font-size:23px;font-weight:700;letter-spacing:-.01em;margin:8px 0 12px}
-.rd-dir__desc{color:var(--text-muted);font-size:15px;margin:0 auto;max-width:560px;line-height:1.7}
-.rd-dir__tag{display:inline-block;margin-top:20px;font-size:12px;font-weight:800;color:var(--primary-strong);background:var(--primary-soft);padding:6px 16px;border-radius:999px}
-/* 里程碑：编号卡片 */
-.rd-cards{display:grid;gap:16px;margin:20px 0 0}
-.rd-card{position:relative;background:var(--surface);border-radius:20px;padding:24px 26px;overflow:hidden;transition:background-color .2s ease}
-.rd-card:hover{background:#fbfefc}
-.rd-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--primary-soft)}
-.rd-card--latest::before{background:var(--primary)}
-.rd-card--latest{box-shadow:inset 0 0 0 1.5px #a9dcc4}
-.rd-card__head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;position:relative}
-.rd-card__date{font-size:12px;font-weight:800;color:var(--primary-strong);background:var(--surface-2);padding:4px 12px;border-radius:999px;font-variant-numeric:tabular-nums;letter-spacing:.3px}
-.rd-card__badge{font-size:11px;font-weight:800;color:#fff;background:var(--primary);padding:3px 10px;border-radius:999px}
-.rd-card__title{font-size:18px;font-weight:700;letter-spacing:-.01em;margin:0 0 6px;position:relative}
-.rd-card__desc{color:var(--text-muted);font-size:14px;margin:0;position:relative;max-width:88%}
-@media (max-width:640px){
-.rd-dir{padding:30px 22px 26px;border-radius:20px}
-.rd-dir__icon{width:62px;height:62px;font-size:27px;box-shadow:0 0 0 7px var(--primary-soft),inset 0 0 0 1px #e6f6ee}
-.rd-dir__name{font-size:19px}
-.rd-card{padding:18px 18px 18px 20px}
-.rd-card__desc{max-width:100%}
-}
-</style>
+  <link rel="stylesheet" href="assets/roadmap.css" />
 </head>
 <body>
   <nav class="nav" id="nav">
@@ -113,7 +84,7 @@
     </section>
   <footer class="footer">
     <div class="channels channels--mini">
-      <a class="channel" href="https://space.bilibili.com/3546711997811319" target="_blank" rel="noopener" data-name="B站" aria-label="B站 频道">
+      <a class="channel" href="https://space.bilibili.com/3546711997811319" target="_blank" rel="noopener noreferrer" data-name="B站" aria-label="B站 频道">
         <span class="channel__badge"><svg viewBox="0 0 64 64" width="64" height="64"><rect x="6" y="20" width="52" height="36" rx="12" fill="#00a1d6"/><path d="M16 8l10 12M48 8l-10 12" stroke="#00a1d6" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M22 30h20M22 38h20" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg></span>
         <span class="channel__name">B站</span>
         <span class="channel__card">
@@ -122,7 +93,7 @@
           <span class="channel__card-text">前往 B站频道 →</span>
         </span>
       </a>
-      <a class="channel" href="https://www.youtube.com/@DuZhu-AYS" target="_blank" rel="noopener" data-name="YouTube" aria-label="YouTube 频道">
+      <a class="channel" href="https://www.youtube.com/@DuZhu-AYS" target="_blank" rel="noopener noreferrer" data-name="YouTube" aria-label="YouTube 频道">
         <span class="channel__badge"><svg viewBox="0 0 64 64" width="64" height="64"><rect x="6" y="16" width="52" height="32" rx="10" fill="#ff0033"/><path d="M28 26l14 6-14 6z" fill="#fff"/></svg></span>
         <span class="channel__name">YouTube</span>
         <span class="channel__card">
@@ -131,7 +102,7 @@
           <span class="channel__card-text">前往 YouTube频道 →</span>
         </span>
       </a>
-      <a class="channel" href="https://www.ximalaya.com/zhubo/57318376" target="_blank" rel="noopener" data-name="喜马拉雅" aria-label="喜马拉雅 频道">
+      <a class="channel" href="https://www.ximalaya.com/zhubo/57318376" target="_blank" rel="noopener noreferrer" data-name="喜马拉雅" aria-label="喜马拉雅 频道">
         <span class="channel__badge"><svg viewBox="0 0 64 64" width="64" height="64"><rect x="6" y="16" width="52" height="32" rx="10" fill="#f96a1c"/><path d="M18 32h4M26 24v16M34 20v24M42 24v16M50 32h4" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg></span>
         <span class="channel__name">喜马拉雅</span>
         <span class="channel__card">
@@ -168,7 +139,7 @@
     <div class="footer__copy">© 2026 AYS · Du株 · 好好吃饭 · 内容仅供参考，不替代医疗诊断</div>
   </footer>
   <script src="assets/script.js"></script>
-  <a class="feedback-fab" href="https://wj.qq.com/s2/28353037/n9yt/" target="_blank" rel="noopener" aria-label="填写意见反馈">
+  <a class="feedback-fab" href="https://wj.qq.com/s2/28353037/n9yt/" target="_blank" rel="noopener noreferrer" aria-label="填写意见反馈">
     <span class="feedback-fab__icon" aria-hidden="true">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5z"/></svg>
     </span>

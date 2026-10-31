@@ -352,6 +352,14 @@ img { max-width: 100%; height: auto; }
   .feedback-fab { right: 14px; bottom: 16px; height: 42px; padding: 0 16px; font-size: 14px; }
 }
 
+/* ---------- 工具类（2026-10-31 安全加固时新增） ----------
+   起因：CSP 收紧到 style-src 'self' 后，页面里不能再出现 style="..." 内联样式。
+   原先散落在模板里的几处内联样式，统一换成这几个语义类，效果完全一致。 */
+.u-center { text-align: center; }
+.u-mt30 { margin-top: 30px; }
+.u-mb22 { margin-bottom: 22px; }
+.yt--box { max-width: 820px; margin: 0 auto; }
+
 /* ---------- 响应式（电脑 / 平板 / 手机自适应） ---------- */
 /* 桌面大屏（>1024px）：维持默认容器与留白 */
 @media (max-width: 1024px) {
