@@ -369,11 +369,13 @@ def tags_html(p):
 
 
 def post_card(p):
+    # url 可选：主理人寄语并入文章流时指向 letter-<年份>.html，普通文章回落 slug
+    href = p.get("url") or (p["slug"] + ".html")
     return f"""      <div class="card post-card">
         <div class="post-card__meta">{p['date']} · {tags_html(p)}</div>
         <div class="post-card__title">{p['title']}</div>
         <p class="post-card__excerpt">{p['summary']}</p>
-        <a class="card__link" href="{p['slug']}.html">阅读全文 →</a>
+        <a class="card__link" href="{href}">阅读全文 →</a>
       </div>"""
 
 
@@ -602,12 +604,12 @@ def list_page(posts):
     inner = f"""
     <main class="wrap section">
       <h1 class="section__title">全部文章</h1>
-      <p class="section__lead">循证营养科普，配套视频在 YouTube @DuZhu-AYS。</p>
+      <p class="section__lead">营养科普，与每年一封的主理人寄语。</p>
       <div class="grid">
 {cards}
       </div>
     </main>"""
-    return page(SITE_CONFIG, f"文章 | {SITE_CONFIG['brand']}", "Du株的全部营养科普文章列表。", inner, SITE + "/articles.html")
+    return page(SITE_CONFIG, f"文章 | {SITE_CONFIG['brand']}", "Du株的全部营养科普文章与主理人寄语。", inner, SITE + "/articles.html")
 
 
 def article_page(p):
@@ -1029,6 +1031,13 @@ def pdate(p):
         return datetime.datetime(1970, 1, 1)
 
 
+def letters_as_posts(letters):
+    """把主理人寄语并入「文章」流（2026-11-02）：
+    每年 11.01 那封信本身也是当年的第一篇文章，但它只保留一个页面——
+    链接指向 letter-<年份>.html（iOS 阅读模式版），不复制正文、不产生重复 URL。"""
+    return [dict(it, tags=["%s 寄语" % it["year"]], url=it["slug"] + ".html") for it in letters]
+
+
 def write_page_css():
     """把页面级样式写成 assets/roadmap.css、assets/service.css（配合 CSP: style-src 'self'）。
     源仍是 build.py 里的 ROADMAP_CSS / SERVICE_CSS，改样式只改那里。"""
@@ -1049,10 +1058,14 @@ def main():
     posts = [p for p in (parse_post(x) for x in glob.glob(os.path.join(POSTS_DIR, "*.md"))) if p]
     posts.sort(key=pdate, reverse=True)
 
+    letters = load_letters()
+    # 文章流 = 普通文章 + 每年一封的主理人寄语，按日期倒序（2026-11-02 起信件即当年第一篇文章）
+    feed = sorted(posts + letters_as_posts(letters), key=pdate, reverse=True)
+
     with open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8") as f:
-        f.write(home(SITE_CONFIG, read_md(os.path.join(CONTENT_DIR, "home.md")), posts[:3]))
+        f.write(home(SITE_CONFIG, read_md(os.path.join(CONTENT_DIR, "home.md")), feed[:3]))
     with open(os.path.join(ROOT, "articles.html"), "w", encoding="utf-8") as f:
-        f.write(list_page(posts))
+        f.write(list_page(feed))
     for p in posts:
         with open(os.path.join(ROOT, p["slug"] + ".html"), "w", encoding="utf-8") as f:
             f.write(article_page(p))
@@ -1063,7 +1076,6 @@ def main():
     with open(os.path.join(ROOT, "service.html"), "w", encoding="utf-8") as f:
         f.write(service_page(SITE_CONFIG, read_md(os.path.join(CONTENT_DIR, "service.md"))))
 
-    letters = load_letters()
     with open(os.path.join(ROOT, "letters.html"), "w", encoding="utf-8") as f:
         f.write(letters_page(SITE_CONFIG, letters))
     for it in letters:

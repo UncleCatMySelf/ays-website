@@ -130,6 +130,8 @@ img { max-width: 100%; height: auto; }
 
 /* ---------- 卡片网格 ---------- */
 .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+/* 只有一篇文章时不撑满整行（940px 的单卡行宽太长，读起来累）；≥2 篇恢复多列 */
+.grid:has(> .post-card:only-child) { grid-template-columns: minmax(0, 720px); }
 /* 2026-10-30 卡片质感改版：去掉 1px 边框与投影，改用白色块浮在薄荷底上分层
    （对齐苹果/华为做法：界面层级靠底色差，而不是描边与阴影） */
 .card {
