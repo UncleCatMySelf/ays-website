@@ -204,12 +204,18 @@ img { max-width: 100%; height: auto; }
    段与段靠留白分隔，只在「标题—正文」之间保留一条 hairline。 */
 .lp { padding: 74px var(--gutter) 96px; }
 .lp__sheet { max-width: 680px; margin: 0 auto; background: var(--surface); border-radius: 26px; padding: clamp(30px, 5.4vw, 66px); }
+.lp__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .lp__eyebrow { display: block; font-size: 11px; font-weight: 800; letter-spacing: 2.4px; text-transform: uppercase; color: var(--primary-strong); }
+/* 语言胶囊：中文 / EN（只有配了英文版才出现） */
+.lp__lang { display: inline-flex; flex: none; align-items: center; gap: 2px; padding: 3px; border-radius: 999px; background: var(--bg); font-size: 12px; font-weight: 700; }
+.lp__lang-btn { padding: 4px 11px; border-radius: 999px; color: var(--text-muted); line-height: 1.4; }
+.lp__lang-btn:hover { text-decoration: none; color: var(--primary-strong); }
+.lp__lang-btn.is-on { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(20, 60, 40, .08); }
 .lp__title { margin: 16px 0 0; font-size: clamp(29px, 5vw, 41px); font-weight: 700; line-height: 1.14; letter-spacing: -.03em; text-wrap: balance; }
 .lp__meta { margin: 18px 0 0; padding-bottom: 26px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-muted); letter-spacing: .2px; }
 .lp__body { margin: 30px 0 0; font-size: 17px; line-height: 1.88; letter-spacing: .006em; }
 .lp__body > p { margin: 0 0 1.35em; text-wrap: pretty; }
-.lp__body > p:first-of-type { font-weight: 600; margin-bottom: 1.6em; }   /* 称谓行 */
+.lp__body > p:first-of-type { font-weight: 600; margin-bottom: 2.1em; }   /* 称谓行 */
 .lp__body h3 { margin: 2.4em 0 1em; font-size: 18px; font-weight: 700; letter-spacing: -.01em; }
 .lp__body h3:first-child { margin-top: 0; }
 .lp__body > p:first-of-type + h3 { margin-top: 1.15em; }   /* 紧接称谓的第一个小标题，收一收上边距 */
@@ -224,6 +230,14 @@ img { max-width: 100%; height: auto; }
 .lp__foot { max-width: 680px; margin: 26px auto 0; padding: 0 clamp(30px, 5.4vw, 66px); display: flex; justify-content: space-between; gap: 16px; font-size: 14px; }
 .lp__foot a { color: var(--primary-strong); font-weight: 600; }
 
+/* 英文版：西文字体栈 + 收紧行高（中文 1.88 的行距对英文太散）+ 去掉中文那条微字距 */
+.lp--en .lp__title { letter-spacing: -.025em; }
+.lp--en .lp__body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 17.5px; line-height: 1.72; letter-spacing: 0; }
+.lp--en .lp__body > p:not(:first-of-type) { margin-bottom: 1.35em; }
+.lp--en .lp__body h3 { font-size: 20px; letter-spacing: -.012em; }
+.lp--en .lp__body li::before { top: .66em; }
+
 @media (max-width: 640px) {
   .person__row { gap: 14px; }
   .person__img { width: 68px; height: 68px; }
@@ -237,6 +251,9 @@ img { max-width: 100%; height: auto; }
   .lp__meta { margin-top: 15px; padding-bottom: 20px; }
   .lp__body { margin-top: 24px; font-size: 16.5px; line-height: 1.85; }
   .lp__body h3 { font-size: 17.5px; margin-top: 2em; }
+  .lp__lang { font-size: 11.5px; }
+  .lp__lang-btn { padding: 4px 9px; }
+  .lp--en .lp__body { font-size: 16.8px; line-height: 1.7; }
   .lp__foot { margin-top: 22px; }
 }
 

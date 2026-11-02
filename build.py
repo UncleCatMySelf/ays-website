@@ -483,9 +483,9 @@ def footer(site, show_channels=True):
   <script src="assets/script.js"></script>'''
 
 
-def page(site, title, desc, inner, url, ogimg="", extra_head="", show_channels=True):
+def page(site, title, desc, inner, url, ogimg="", extra_head="", show_channels=True, lang="zh-CN"):
     return f"""<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="{lang}">
 <head>
   <!-- 本文件由 build.py 自动生成（生成日期随每次构建刷新），请勿手动修改；改文案见 content/*.md，改样式见 assets/style.css -->
   <meta charset="UTF-8" />
@@ -665,13 +665,19 @@ def ymd_cn(d):
 
 def load_letters():
     """读取 content/letters/*.md，按日期倒序。文件名（YYYY）即年份标识。
-    用户每年 11 月 1 日新增一个 md，即自动成为「最新一期」，旧文自动进往期归档。"""
+    用户每年 11 月 1 日新增一个 md，即自动成为「最新一期」，旧文自动进往期归档。
+
+    英文版（2026-11-02）：同目录放 `2026.en.md`（frontmatter 带 lang: en），
+    构建时自动与 `2026.md` 配对成双语页，生成 letter-2026-en.html 并互挂 hreflang。
+    没有 .en.md 的信件就只出中文页，不做半成品英文。"""
     items = []
     if not os.path.isdir(LETTERS_DIR):
         return items
     for path in sorted(glob.glob(os.path.join(LETTERS_DIR, "*.md"))):
         name = os.path.basename(path)
         if name.startswith("_"):        # 下划线开头=模板/草稿，不参与构建
+            continue
+        if name.endswith(".en.md"):     # 英文版由下面的配对逻辑读取，不单独成条
             continue
         fm, body = parse_frontmatter(read_md(path))
         year = fm.get("year") or os.path.splitext(os.path.basename(path))[0]
@@ -681,6 +687,20 @@ def load_letters():
         if not re.fullmatch(r"\d{4}", year):
             print("[跳过] 寄语年份不合法（需四位数字）：", path)
             continue
+
+        # 配对英文版：2026.md → 2026.en.md
+        en = None
+        en_path = os.path.splitext(path)[0] + ".en.md"
+        if os.path.isfile(en_path):
+            efm, ebody = parse_frontmatter(read_md(en_path))
+            en = dict(
+                slug="letter-%s-en" % year,
+                title=efm.get("title") or "Letter %s" % year,
+                summary=efm.get("summary") or "",
+                html=md_to_html(ebody),
+                date=efm.get("date") or fm.get("date", ""),
+            )
+
         items.append(dict(
             year=str(year),
             slug="letter-" + str(year),
@@ -688,6 +708,7 @@ def load_letters():
             date=fm.get("date", ""),
             summary=fm.get("summary", ""),
             html=md_to_html(body),
+            en=en,
         ))
     items.sort(key=lambda x: (str(x["date"]), x["year"]), reverse=True)
     return items
@@ -739,28 +760,78 @@ def letters_page(site, letters):
 SIGN_MARK_RE = re.compile(r"<p>\[\[SIGN:([^\]\n|]*)\|([^\]\n]*)\]\]</p>")
 
 
-def letter_page(site, it):
-    """信件详情页（2026-11-02 改版）：iOS 阅读模式——白纸卡片、窄栏、大留白。"""
+def ymd_en(d):
+    """英文日期显示：2026-11-01 -> November 1, 2026（Windows 不支持 %-d，拆开拼）。"""
+    try:
+        dt = datetime.datetime.strptime(d, "%Y-%m-%d")
+        return "%s %d, %d" % (dt.strftime("%B"), dt.day, dt.year)
+    except Exception:
+        return d
+
+
+def lang_switch(it, lang):
+    """中/EN 胶囊。只有存在英文版时才渲染，避免出现点了没内容的死按钮。"""
+    en = it.get("en")
+    if not en:
+        return ""
+    zh_link = '<a class="lp__lang-btn" href="%s.html" hreflang="zh-CN">中文</a>' % it["slug"]
+    en_link = '<a class="lp__lang-btn" href="%s.html" hreflang="en">EN</a>' % en["slug"]
+    zh_cur = '<span class="lp__lang-btn is-on" aria-current="true">中文</span>'
+    en_cur = '<span class="lp__lang-btn is-on" aria-current="true">EN</span>'
+    if lang == "en":
+        return '<span class="lp__lang">%s%s</span>' % (zh_link, en_cur)
+    return '<span class="lp__lang">%s%s</span>' % (zh_cur, en_link)
+
+
+def letter_page(site, it, lang="zh"):
+    """信件详情页（2026-11-02 改版）：iOS 阅读模式——白纸卡片、窄栏、大留白。
+    lang="en" 时输出英文版（同模板、英文排版参数、hreflang 互链）。"""
+    en = it.get("en")
+    is_en = (lang == "en" and en)
+
+    if is_en:
+        title, summary, body, slug = en["title"], en["summary"], en["html"], en["slug"]
+        meta_line = "%s · Du株" % ymd_en(en["date"] or it["date"])
+        foot = '<a href="letters.html">← All letters</a><a href="about.html">About AYS →</a>'
+        cls = "lp lp--en"
+    else:
+        title, summary, body, slug = it["title"], it["summary"], it["html"], it["slug"]
+        meta_line = "%s · 主理人 Du株" % ymd_cn(it["date"])
+        foot = '<a href="letters.html">← 全部寄语</a><a href="about.html">关于 AYS →</a>'
+        cls = "lp"
+
     body = SIGN_MARK_RE.sub(
         lambda m: ('<div class="lp__sign"><span class="lp__sign-name">%s</span>'
                    '<span class="lp__sign-date">%s</span></div>' % (m.group(1), m.group(2))),
-        it["html"],
+        body,
     )
-    inner = f"""    <main class="lp">
+
+    # 双语互链：告诉搜索引擎这是同一篇的两个语言版本，各自收录、不互抢排名
+    extra = ""
+    if en:
+        extra = ('  <link rel="alternate" hreflang="zh-CN" href="%s/%s.html" />\n'
+                 '  <link rel="alternate" hreflang="en" href="%s/%s.html" />\n'
+                 '  <link rel="alternate" hreflang="x-default" href="%s/%s.html" />'
+                 % (SITE, it["slug"], SITE, en["slug"], SITE, it["slug"]))
+
+    inner = f"""    <main class="{cls}">
       <div class="lp__sheet">
-        <span class="lp__eyebrow">Letter · {it["year"]}</span>
-        <h1 class="lp__title">{html.escape(it["title"])}</h1>
-        <p class="lp__meta">{ymd_cn(it["date"])} · 主理人 Du株</p>
+        <div class="lp__top">
+          <span class="lp__eyebrow">Letter · {it["year"]}</span>
+          {lang_switch(it, "en" if is_en else "zh")}
+        </div>
+        <h1 class="lp__title">{html.escape(title)}</h1>
+        <p class="lp__meta">{meta_line}</p>
         <div class="lp__body">
 {body}
         </div>
       </div>
       <div class="lp__foot">
-        <a href="letters.html">← 全部寄语</a>
-        <a href="about.html">关于 AYS →</a>
+        {foot}
       </div>
     </main>"""
-    return page(site, f"{it['title']} | {site['brand']}", it["summary"] or it["title"], inner, SITE + "/" + it["slug"] + ".html")
+    return page(site, f"{title} | {site['brand']}", summary or title, inner, SITE + "/" + slug + ".html",
+                extra_head=extra, lang="en" if is_en else "zh-CN")
 
 
 def render_about(site, content):
@@ -1081,12 +1152,16 @@ def main():
     for it in letters:
         with open(os.path.join(ROOT, it["slug"] + ".html"), "w", encoding="utf-8") as f:
             f.write(letter_page(SITE_CONFIG, it))
+        if it.get("en"):
+            with open(os.path.join(ROOT, it["en"]["slug"] + ".html"), "w", encoding="utf-8") as f:
+                f.write(letter_page(SITE_CONFIG, it, lang="en"))
 
     # sitemap
     urls = [SITE + "/index.html", SITE + "/about.html", SITE + "/articles.html",
             SITE + "/service.html", SITE + "/roadmap.html", SITE + "/letters.html"]
     urls += [SITE + "/" + p["slug"] + ".html" for p in posts]
     urls += [SITE + "/" + it["slug"] + ".html" for it in letters]
+    urls += [SITE + "/" + it["en"]["slug"] + ".html" for it in letters if it.get("en")]
     sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     for u in urls:
         sm += f"  <url><loc>{html.escape(u)}</loc></url>\n"
