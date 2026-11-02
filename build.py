@@ -732,14 +732,31 @@ def letters_page(site, letters):
     return page(site, f"主理人寄语 | {site['brand']}", "AYS 主理人 Du株 每年 11 月 1 日写给读者的一封信，按年份收录。", inner, SITE + "/letters.html")
 
 
+# 落款标记：正文里单独一行 [[SIGN:Du株|2026.11.1]]，渲染为右对齐署名块。
+# 用标记而不是「猜最后两段」，是因为信件正文长度不固定，猜容易错位。
+SIGN_MARK_RE = re.compile(r"<p>\[\[SIGN:([^\]\n|]*)\|([^\]\n]*)\]\]</p>")
+
+
 def letter_page(site, it):
-    inner = f"""    <main class="wrap section letter-view">
-      <h1 class="section__title">{html.escape(it["title"])}</h1>
-      <p class="letter-view__date">{ymd_cn(it["date"])} · 主理人Du株 · 寄语</p>
-      <div class="letter-view__body">
-{it["html"]}
+    """信件详情页（2026-11-02 改版）：iOS 阅读模式——白纸卡片、窄栏、大留白。"""
+    body = SIGN_MARK_RE.sub(
+        lambda m: ('<div class="lp__sign"><span class="lp__sign-name">%s</span>'
+                   '<span class="lp__sign-date">%s</span></div>' % (m.group(1), m.group(2))),
+        it["html"],
+    )
+    inner = f"""    <main class="lp">
+      <div class="lp__sheet">
+        <span class="lp__eyebrow">Letter · {it["year"]}</span>
+        <h1 class="lp__title">{html.escape(it["title"])}</h1>
+        <p class="lp__meta">{ymd_cn(it["date"])} · 主理人 Du株</p>
+        <div class="lp__body">
+{body}
+        </div>
       </div>
-      <p class="backlink"><a href="letters.html">← 全部寄语</a></p>
+      <div class="lp__foot">
+        <a href="letters.html">← 全部寄语</a>
+        <a href="about.html">关于 AYS →</a>
+      </div>
     </main>"""
     return page(site, f"{it['title']} | {site['brand']}", it["summary"] or it["title"], inner, SITE + "/" + it["slug"] + ".html")
 

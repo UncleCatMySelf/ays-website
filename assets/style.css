@@ -173,8 +173,8 @@ img { max-width: 100%; height: auto; }
 .sponsor__hint { display: block; margin-top: 2px; font-size: 12px; color: var(--text-muted); }
 
 /* 主理人寄语：关于页摘要卡 / 归档页 / 详情页（内容源 content/letters/*.md，每年 11.01 一封） */
-.letter { margin-top: 16px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
-.letter--pending { border-style: dashed; }
+.letter { margin-top: 16px; background: var(--surface-2); border-radius: 18px; padding: 18px 20px; }
+.letter--pending { border: 1px dashed var(--border); }
 .letter__meta { display: flex; align-items: center; gap: 8px; }
 .letter__badge { font-size: 12px; font-weight: 800; color: #fff; background: var(--primary); border-radius: 999px; padding: 2px 9px; letter-spacing: .5px; }
 .letter__date { font-size: 12.5px; color: var(--text-muted); }
@@ -185,8 +185,9 @@ img { max-width: 100%; height: auto; }
 .letter__more--sub { font-weight: 500; color: var(--text-muted); }
 
 .llist { display: grid; gap: 12px; margin-top: 8px; }
-.lrow { display: flex; align-items: center; gap: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
-.lrow:hover { border-color: var(--primary); text-decoration: none; }
+.lrow { display: flex; align-items: center; gap: 16px; background: var(--surface); border-radius: 18px; padding: 20px 22px; }
+.lrow:hover { background: #fbfefc; text-decoration: none; }
+.lrow:hover .lrow__title { color: var(--primary-strong); }
 .lrow__year { flex: none; font-size: 20px; font-weight: 800; color: var(--primary-strong); }
 .lrow__body { flex: 1; min-width: 0; display: block; }
 .lrow__title { display: block; font-weight: 700; color: var(--text); }
@@ -195,20 +196,46 @@ img { max-width: 100%; height: auto; }
 .backlink { margin-top: 26px; font-size: 14px; }
 .backlink a { color: var(--primary-strong); font-weight: 600; }
 
-.letter-view__date { margin: -6px 0 22px; font-size: 13px; color: var(--text-muted); }
-.letter-view__body { font-size: 16px; line-height: 1.9; }
-.letter-view__body p { margin: 0 0 16px; }
-.letter-view__body ul, .letter-view__body ol { margin: 0 0 16px; padding-left: 22px; }
-.letter-view__body h2 { font-size: 19px; margin: 28px 0 10px; }
-.letter-view__body blockquote { margin: 0 0 16px; padding-left: 14px; border-left: 3px solid var(--primary-soft); color: var(--text-muted); }
+/* ---------- 信件详情页（2026-11-02 改版）：iOS 阅读模式 ----------
+   设计依据：白纸卡片浮在薄荷底上（不加边框、不加阴影，靠底色差分层），
+   窄栏 680px 让中文每行 34-38 字；正文 17px / 行高 1.88；标题大字重 + 负字距；
+   段与段靠留白分隔，只在「标题—正文」之间保留一条 hairline。 */
+.lp { padding: 74px var(--gutter) 96px; }
+.lp__sheet { max-width: 680px; margin: 0 auto; background: var(--surface); border-radius: 26px; padding: clamp(30px, 5.4vw, 66px); }
+.lp__eyebrow { display: block; font-size: 11px; font-weight: 800; letter-spacing: 2.4px; text-transform: uppercase; color: var(--primary-strong); }
+.lp__title { margin: 16px 0 0; font-size: clamp(29px, 5vw, 41px); font-weight: 700; line-height: 1.14; letter-spacing: -.03em; text-wrap: balance; }
+.lp__meta { margin: 18px 0 0; padding-bottom: 26px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-muted); letter-spacing: .2px; }
+.lp__body { margin: 30px 0 0; font-size: 17px; line-height: 1.88; letter-spacing: .006em; }
+.lp__body > p { margin: 0 0 1.35em; text-wrap: pretty; }
+.lp__body > p:first-of-type { font-weight: 600; margin-bottom: 1.6em; }   /* 称谓行 */
+.lp__body h3 { margin: 2.4em 0 1em; font-size: 18px; font-weight: 700; letter-spacing: -.01em; }
+.lp__body h3:first-child { margin-top: 0; }
+.lp__body > p:first-of-type + h3 { margin-top: 1.15em; }   /* 紧接称谓的第一个小标题，收一收上边距 */
+.lp__body ul, .lp__body ol { margin: 0 0 1.4em; padding: 0; list-style: none; }
+.lp__body li { position: relative; padding-left: 19px; margin: 0 0 .75em; text-wrap: pretty; }
+.lp__body li::before { content: ""; position: absolute; left: 3px; top: .74em; width: 5px; height: 5px; border-radius: 999px; background: var(--primary); }
+.lp__body blockquote { margin: 0 0 1.4em; padding-left: 16px; border-left: 2px solid var(--primary-soft); color: var(--text-muted); }
+.lp__body strong { font-weight: 700; }
+.lp__sign { margin: 2.8em 0 0; text-align: right; }
+.lp__sign-name { display: block; font-size: 17.5px; font-weight: 700; }
+.lp__sign-date { display: block; margin-top: 5px; font-size: 13px; color: var(--text-muted); letter-spacing: .4px; }
+.lp__foot { max-width: 680px; margin: 26px auto 0; padding: 0 clamp(30px, 5.4vw, 66px); display: flex; justify-content: space-between; gap: 16px; font-size: 14px; }
+.lp__foot a { color: var(--primary-strong); font-weight: 600; }
 
 @media (max-width: 640px) {
   .person__row { gap: 14px; }
   .person__img { width: 68px; height: 68px; }
   .person__img--square { border-radius: 14px; }
   .letter { padding: 14px; }
-  .lrow { flex-wrap: wrap; gap: 10px 12px; padding: 14px; }
+  .lrow { flex-wrap: wrap; gap: 10px 12px; padding: 16px 20px; }
   .lrow__date { order: 3; width: 100%; }
+  .lp { padding: 44px var(--gutter) 64px; }
+  .lp__sheet { border-radius: 20px; padding: 28px 22px 34px; }
+  .lp__title { margin-top: 13px; }
+  .lp__meta { margin-top: 15px; padding-bottom: 20px; }
+  .lp__body { margin-top: 24px; font-size: 16.5px; line-height: 1.85; }
+  .lp__body h3 { font-size: 17.5px; margin-top: 2em; }
+  .lp__foot { margin-top: 22px; }
 }
 
 .card__link { display: inline-block; margin-top: 14px; font-weight: 700; }
